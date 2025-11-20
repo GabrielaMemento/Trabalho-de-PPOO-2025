@@ -12,33 +12,29 @@ import java.util.Random;
 public class Fox extends Animal
 {
     // Characteristics shared by all foxes (static fields).
-
-    //Os atributos 'BREEDING_AGE', 'MAX_AGE', 'BREEDING_PROBABILITY', 'foodLevel', 'MAX_LITTER_SIZE', 'FOOD_VALUE' e 'rand' foram movidos para a classe Animal (comum entre todos os animais).
-    // BREEDING_AGE = 10;
-    // foodLevel = ??;
-    // MAX_AGE = 150;
-    // BREEDING_PROBABILITY = 0.09;
-    // MAX_LITTER_SIZE = 3;
-    // FOOD_VALUE = ??;
-    // rand = new Random();
     
-    // Individual characteristics (instance fields).
-    // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
-
+    // The age at which a fox can start to breed.
+    private static final int BREEDING_AGE = 10;
+    // The age to which a fox can live.
+    private static final int MAX_AGE = 150;
+    // The likelihood of a fox breeding.
+    private static final double BREEDING_PROBABILITY = 0.09;
+    // The maximum number of births.
+    private static final int MAX_LITTER_SIZE = 3;
     // The food value of a single rabbit. In effect, this is the
     // number of steps a fox can go before it has to eat again.
-    private static final int RABBIT_FOOD_VALUE = 4; // EM COMUM PARA OS PREDADORES
-
+    private static final int RABBIT_FOOD_VALUE = 4;
+    // A shared random number generator to control breeding.
+    private static final Random rand = new Random();
     
     // Individual characteristics (instance fields).
-    // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
 
     // The fox's age.
-
+    private int age;
     // Whether the fox is alive or not.
-
+    private boolean alive;
     // The fox's position
-
+    private Location location;
     // The fox's food level, which is increased by eating rabbits.
     private int foodLevel;
 
@@ -50,13 +46,14 @@ public class Fox extends Animal
      */
     public Fox(boolean randomAge)
     {
-        super();
+        age = 0;
+        alive = true;
         if(randomAge) {
-            setAge(rand.nextInt(MAX_AGE));
+            age = rand.nextInt(MAX_AGE);
             foodLevel = rand.nextInt(RABBIT_FOOD_VALUE);
         }
         else {
-            // age já é 0 pelo construtor de Animal
+            // leave age at 0
             foodLevel = RABBIT_FOOD_VALUE;
         }
     }
@@ -66,12 +63,7 @@ public class Fox extends Animal
      * rabbits. In the process, it might breed, die of hunger,
      * or die of old age.
      */
-    /**
-     * Isso é o que a raposa faz na maior parte do tempo: caça coelhos.
-     * No processo, ela pode se reproduzir, morrer de fome ou morrer de velhice.
-     */
-    @Override
-    public void act(Field currentField, Field updatedField, List newFoxes)
+    public void hunt(Field currentField, Field updatedField, List newFoxes)
     {
         incrementAge();
         incrementHunger();
@@ -81,14 +73,14 @@ public class Fox extends Animal
             for(int b = 0; b < births; b++) {
                 Fox newFox = new Fox(false);
                 newFoxes.add(newFox);
-                Location loc = updatedField.randomAdjacentLocation(getLocation());
+                Location loc = updatedField.randomAdjacentLocation(location);
                 newFox.setLocation(loc);
                 updatedField.place(newFox, loc);
             }
             // Move towards the source of food if found.
-            Location newLocation = findFood(currentField, getLocation());
+            Location newLocation = findFood(currentField, location);
             if(newLocation == null) {  // no food found - move randomly
-                newLocation = updatedField.freeAdjacentLocation(getLocation());
+                newLocation = updatedField.freeAdjacentLocation(location);
             }
             if(newLocation != null) {
                 setLocation(newLocation);
@@ -96,33 +88,20 @@ public class Fox extends Animal
             }
             else {
                 // can neither move nor stay - overcrowding - all locations taken
-                setDead();
+                alive = false;
             }
         }
     }
     
-    /**
-     * Increase the age. This could result in the fox's death.
-     */
-    /**
-     * Aumenta a idade. Isso pode resultar na morte da raposa.
-     */
-    private void incrementAge()
-    {
-        incrementAge(MAX_AGE);
-    }
     
     /**
      * Make this fox more hungry. This could result in the fox's death.
-     */
-    /**
-     * Deixa a raposa mais faminta. Isso pode resultar na morte da raposa.
      */
     private void incrementHunger()
     {
         foodLevel--;
         if(foodLevel <= 0) {
-            setDead();
+            alive = false;
         }
     }
     
@@ -151,50 +130,15 @@ public class Fox extends Animal
         return null;
     }
         
-    /**
-     * Generate a number representing the number of births,
-     * if it can breed.
-     * @return The number of births (may be zero).
-     */
-    private int breed()
-    {
-        int births = 0;
-        if(canBreed() && rand.nextDouble() <= BREEDING_PROBABILITY) {
-            births = rand.nextInt(MAX_LITTER_SIZE) + 1;
-        }
-        return births;
-    }
-
-    /**
-     * A fox can breed if it has reached the breeding age.
-     */
-    private boolean canBreed()
-    {
-        return getAge() >= BREEDING_AGE;
-    }
     
-    /**
-     * Check whether the fox is alive or not.
-     * @return True if the fox is still alive.
-     */
-
-
     /**
      * Set the animal's location.
      * @param row The vertical coordinate of the location.
      * @param col The horizontal coordinate of the location.
      */
-
-
-    /**
-     * Set the fox's location.
-     * @param location The fox's location.
-     */
-    // O método setLocation(Location) foi movido para a classe Animal.
-    // O método setLocation(int, int) foi removido, pois a versão com Location é suficiente.
-    @Override
-    public void setLocation(Location location)
+    public void setLocation(int row, int col)
     {
-        super.setLocation(location);
+        this.location = new Location(row, col);
     }
+
 }

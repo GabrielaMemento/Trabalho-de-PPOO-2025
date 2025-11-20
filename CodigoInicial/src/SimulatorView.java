@@ -1,39 +1,50 @@
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import java.util.HashMap;
 
 /**
- * Visualização gráfica da simulação.
- * Exibe um retângulo colorido para cada posição do campo, representando seu conteúdo.
- * As cores para cada tipo de ator podem ser definidas com o método setColor.
+ * A graphical view of the simulation grid.
+ * The view displays a colored rectangle for each location 
+ * representing its contents. It uses a default background color.
+ * Colors for each type of species can be defined using the
+ * setColor method.
  * 
- * @author David J. Barnes, Michael Kolling
- * @version 2002-04-23 (adaptado por Gabriela)
+ * @author David J. Barnes and Michael Kolling
+ * @version 2002-04-23
  */
-public class SimulatorView extends JFrame {
+public class SimulatorView extends JFrame
+{
+    // Colors used for empty locations.
     private static final Color EMPTY_COLOR = Color.white;
+
+    // Color used for objects that have no defined color.
     private static final Color UNKNOWN_COLOR = Color.gray;
 
-    private final String STEP_PREFIX = "Passo: ";
-    private final String POPULATION_PREFIX = "População: ";
-
+    private final String STEP_PREFIX = "Step: ";
+    private final String POPULATION_PREFIX = "Population: ";
     private JLabel stepLabel, population;
     private FieldView fieldView;
-    private HashMap<Class<?>, Color> colors;
+    
+    // A map for storing colors for participants in the simulation
+    private HashMap colors;
+    // A statistics object computing and storing simulation information
     private FieldStats stats;
 
     /**
-     * Cria a visualização com altura e largura especificadas.
+     * Create a view of the given width and height.
      */
-    public SimulatorView(int height, int width) {
+    public SimulatorView(int height, int width)
+    {
         stats = new FieldStats();
-        colors = new HashMap<>();
+        colors = new HashMap();
 
-        setTitle("Simulação de Raposas e Coelhos");
+        setTitle("Fox and Rabbit Simulation");
         stepLabel = new JLabel(STEP_PREFIX, JLabel.CENTER);
         population = new JLabel(POPULATION_PREFIX, JLabel.CENTER);
-
+        
         setLocation(100, 50);
+        
         fieldView = new FieldView(height, width);
 
         Container contents = getContentPane();
@@ -43,95 +54,147 @@ public class SimulatorView extends JFrame {
         pack();
         setVisible(true);
     }
-
+    
     /**
-     * Define a cor para uma determinada classe de ator.
+     * Define a color to be used for a given class of animal.
      */
-    public void setColor(Class<?> actorClass, Color color) {
-        colors.put(actorClass, color);
+    public void setColor(Class animalClass, Color color)
+    {
+        colors.put(animalClass, color);
     }
 
     /**
-     * Retorna a cor associada à classe do ator.
+     * Define a color to be used for a given class of animal.
      */
-    private Color getColor(Class<?> actorClass) {
-        return colors.getOrDefault(actorClass, UNKNOWN_COLOR);
+    private Color getColor(Class animalClass)
+    {
+        Color col = (Color)colors.get(animalClass);
+        if(col == null) {
+            // no color defined for this class
+            return UNKNOWN_COLOR;
+        }
+        else {
+            return col;
+        }
     }
 
     /**
-     * Atualiza a visualização com o estado atual do campo.
+     * Show the current status of the field.
+     * @param step Which iteration step it is.
+     * @param stats Status of the field to be represented.
      */
-    public void showStatus(int step, Field field) {
-        if (!isVisible()) setVisible(true);
+    public void showStatus(int step, Field field)
+    {
+        if(!isVisible())
+            setVisible(true);
 
         stepLabel.setText(STEP_PREFIX + step);
+
         stats.reset();
         fieldView.preparePaint();
-
-        for (int row = 0; row < field.getDepth(); row++) {
-            for (int col = 0; col < field.getWidth(); col++) {
-                Object actor = field.getObjectAt(row, col);
-                if (actor != null) {
-                    stats.incrementCount(actor.getClass());
-                    fieldView.drawMark(col, row, getColor(actor.getClass()));
-                } else {
+            
+        for(int row = 0; row < field.getDepth(); row++) {
+            for(int col = 0; col < field.getWidth(); col++) {
+                Object animal = field.getObjectAt(row, col);
+                if(animal != null) {
+                    stats.incrementCount(animal.getClass());
+                    fieldView.drawMark(col, row, getColor(animal.getClass()));
+                }
+                else {
                     fieldView.drawMark(col, row, EMPTY_COLOR);
                 }
             }
         }
-
         stats.countFinished();
+
         population.setText(POPULATION_PREFIX + stats.getPopulationDetails(field));
         fieldView.repaint();
     }
 
     /**
-     * Verifica se a simulação ainda é viável (mais de uma espécie viva).
+     * Determine whether the simulation should continue to run.
+     * @return true If there is more than one species alive.
      */
-    public boolean isViable(Field field) {
+    public boolean isViable(Field field)
+    {
         return stats.isViable(field);
     }
-
+    
     /**
-     * Componente gráfico interno que representa o campo.
+     * Provide a graphical view of a rectangular field. This is 
+     * a nested class (a class defined inside a class) which
+     * defines a custom component for the user interface. This
+     * component displays the field.
+     * This is rather advanced GUI stuff - you can ignore this 
+     * for your project if you like.
      */
-    private class FieldView extends JPanel {
+    private class FieldView extends JPanel
+    {
         private final int GRID_VIEW_SCALING_FACTOR = 6;
+
         private int gridWidth, gridHeight;
         private int xScale, yScale;
-        private Dimension size;
+        Dimension size;
         private Graphics g;
         private Image fieldImage;
 
-        public FieldView(int height, int width) {
+        /**
+         * Create a new FieldView component.
+         */
+        public FieldView(int height, int width)
+        {
             gridHeight = height;
             gridWidth = width;
             size = new Dimension(0, 0);
         }
 
-        public Dimension getPreferredSize() {
+        /**
+         * Tell the GUI manager how big we would like to be.
+         */
+        public Dimension getPreferredSize()
+        {
             return new Dimension(gridWidth * GRID_VIEW_SCALING_FACTOR,
                                  gridHeight * GRID_VIEW_SCALING_FACTOR);
         }
-
-        public void preparePaint() {
-            if (!size.equals(getSize())) {
+        
+        /**
+         * Prepare for a new round of painting. Since the component
+         * may be resized, compute the scaling factor again.
+         */
+        public void preparePaint()
+        {
+            if(! size.equals(getSize())) {  // if the size has changed...
                 size = getSize();
-                fieldImage = createImage(size.width, size.height);
+                fieldImage = fieldView.createImage(size.width, size.height);
                 g = fieldImage.getGraphics();
 
-                xScale = Math.max(size.width / gridWidth, GRID_VIEW_SCALING_FACTOR);
-                yScale = Math.max(size.height / gridHeight, GRID_VIEW_SCALING_FACTOR);
+                xScale = size.width / gridWidth;
+                if(xScale < 1) {
+                    xScale = GRID_VIEW_SCALING_FACTOR;
+                }
+                yScale = size.height / gridHeight;
+                if(yScale < 1) {
+                    yScale = GRID_VIEW_SCALING_FACTOR;
+                }
             }
         }
-
-        public void drawMark(int x, int y, Color color) {
+        
+        /**
+         * Paint on grid location on this field in a given color.
+         */
+        public void drawMark(int x, int y, Color color)
+        {
             g.setColor(color);
-            g.fillRect(x * xScale, y * yScale, xScale - 1, yScale - 1);
+            g.fillRect(x * xScale, y * yScale, xScale-1, yScale-1);
         }
 
-        public void paintComponent(Graphics g) {
-            if (fieldImage != null) {
+        /**
+         * The field view component needs to be redisplayed. Copy the
+         * internal image to screen.
+         */
+        public void paintComponent(Graphics g)
+        {
+            if(fieldImage != null) {
                 g.drawImage(fieldImage, 0, 0, null);
             }
         }
