@@ -39,13 +39,13 @@ public class Rabbit extends Animal
         if(isAlive()) {
             int births = breed();
             for(int b = 0; b < births; b++) {
-                Rabbit newRabbit = new Rabbit(false);
+                Rabbit newRabbit = new Rabbit(null, false, b, b, b, b, b, false, null, b);
                 newRabbits.add(newRabbit);
-                Location loc = updatedField.randomAdjacentLocation(location);
+                Location loc = updatedField.randomAdjacentLocation(getLocation());
                 newRabbit.setLocation(loc);
                 updatedField.place(newRabbit, loc);
             }
-            Location newLocation = updatedField.freeAdjacentLocation(location);
+            Location newLocation = updatedField.freeAdjacentLocation(getLocation());
             // Only transfer to the updated field if there was a free location
             if(newLocation != null) {
                 setLocation(newLocation);
@@ -53,20 +53,9 @@ public class Rabbit extends Animal
             }
             else {
                 // can neither move nor stay - overcrowding - all locations taken
-                alive = false;
+                setDead();
             }
         }
-    }
-    
-
-    
-
-    /**
-     * Tell the rabbit that it's dead now :(
-     */
-    public void setEaten()
-    {
-        alive = false;
     }
 
 

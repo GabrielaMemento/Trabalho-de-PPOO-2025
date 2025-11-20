@@ -11,13 +11,9 @@ import java.util.Random;
  */
 public class Fox extends Animal
 {
-    // Characteristics shared by all foxes (static fields).
-
-    // The food value of a single rabbit. In effect, this is the
-    // number of steps a fox can go before it has to eat again.
     private static final int RABBIT_FOOD_VALUE = 4;
-
-
+    private static final int MAX_FOOD_VALUE = 20; 
+    
     /**
      * Create a fox. A fox can be created as a new born (age zero
      * and not hungry) or with random age.
@@ -57,39 +53,27 @@ public class Fox extends Animal
             // New foxes are born into adjacent locations.
             int births = breed();
             for(int b = 0; b < births; b++) {
-                Fox newFox = new Fox(false);
+                Fox newFox = new Fox(null, false, b, b, b, b, b, false, null, b);
                 newFoxes.add(newFox);
-                Location loc = updatedField.randomAdjacentLocation(location);
+                Location loc = updatedField.randomAdjacentLocation(getLocation());
                 newFox.setLocation(loc);
                 updatedField.place(newFox, loc);
             }
             // Move towards the source of food if found.
-            Location newLocation = findFood(currentField, location);
+            Location newLocation = findFood(currentField, getLocation());
             if(newLocation == null) {  // no food found - move randomly
-                newLocation = updatedField.freeAdjacentLocation(location);
+                newLocation = updatedField.freeAdjacentLocation(getLocation());
             }
             if(newLocation != null) {
                 setLocation(newLocation);
                 updatedField.place(this, newLocation);
             }
             else {
-                // can neither move nor stay - overcrowding - all locations taken
-                alive = false;
+                setDead();
             }
         }
     }
     
-    
-    /**
-     * Make this fox more hungry. This could result in the fox's death.
-     */
-    private void incrementHunger()
-    {
-        foodLevel--;
-        if(foodLevel <= 0) {
-            alive = false;
-        }
-    }
     
     /**
      * Tell the fox to look for rabbits adjacent to its current location.
@@ -97,34 +81,27 @@ public class Fox extends Animal
      * @param location Where in the field it is located.
      * @return Where food was found, or null if it wasn't.
      */
-    private Location findFood(Field field, Location location)
+    private Location findFood(Location location)
     {
-        Iterator adjacentLocations =
-                        field.adjacentLocations(location);
-        while(adjacentLocations.hasNext()) {
-            Location where = (Location) adjacentLocations.next();
-            Object animal = field.getObjectAt(where);
-            if(animal instanceof Rabbit) {
-                Rabbit rabbit = (Rabbit) animal;
-                if(rabbit.isAlive()) { 
-                    rabbit.setEaten();
-                    foodLevel = RABBIT_FOOD_VALUE;
-                    return where;
+    Iterator<Location> it = field.adjacentLocations(location);
+    Location rabbitLocation = null;
+    while(it.hasNext()) {
+        Location where = it.next();
+        Object animal = field.getObjectAt(where);
+        if(animal instanceof Rabbit) {
+            Rabbit rabbit = (Rabbit) animal;
+            if(rabbit.isAlive()) {
+                rabbit.setDead();
+                foodLevel += RABBIT_FOOD_VALUE;
+                if(foodLevel > MAX_FOOD_VALUE) {
+                    foodLevel = MAX_FOOD_VALUE;
                 }
-            }
+                rabbitLocation = where;
+            }      
         }
-        return null;
     }
+    return rabbitLocation;
+} 
         
-    
-    /**
-     * Set the animal's location.
-     * @param row The vertical coordinate of the location.
-     * @param col The horizontal coordinate of the location.
-     */
-    public void setLocation(int row, int col)
-    {
-        this.location = new Location(row, col);
-    }
 
 }
