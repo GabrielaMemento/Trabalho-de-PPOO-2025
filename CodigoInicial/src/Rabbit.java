@@ -12,27 +12,18 @@ public class Rabbit extends Animal
 {
     // Characteristics shared by all rabbits (static fields).
 
-    // The age at which a rabbit can start to breed.
-    private static final int BREEDING_AGE = 5;
-    // The age to which a rabbit can live.
-    private static final int MAX_AGE = 50;
-    // The likelihood of a rabbit breeding.
-    private static final double BREEDING_PROBABILITY = 0.15;
-    // The maximum number of births.
-    private static final int MAX_LITTER_SIZE = 5;
-    // A shared random number generator to control breeding.
-    private static final Random rand = new Random();
+    //Os atributos 'BREEDING_AGE', 'MAX_AGE', 'BREEDING_PROBABILITY', 'foodLevel', 'MAX_LITTER_SIZE', 'FOOD_VALUE' e 'rand' foram movidos para a classe Animal (comum entre todos os animais).
+    // BREEDING_AGE = 5;
+    // foodLevel = ??;
+    // MAX_AGE = 50;
+    // BREEDING_PROBABILITY = 0.15;
+    // MAX_LITTER_SIZE = 5;
+    // FOOD_VALUE = ??;
+    // rand = new Random();
     
     // Individual characteristics (instance fields).
     // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
     
-    // The rabbit's age.
-    
-    // Whether the rabbit is alive or not.
-    
-    // The rabbit's position
-    
-
     /**
      * Create a new rabbit. A rabbit may be created with age
      * zero (a new born) or with a random age.

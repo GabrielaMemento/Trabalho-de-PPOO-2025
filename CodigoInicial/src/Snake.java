@@ -10,12 +10,22 @@ import java.util.Iterator;
  * 
  */
 public class Snake extends Animal {
-    private static final int BREEDING_AGE = 8;
-    private static final int MAX_AGE = 40;
-    private static final double BREEDING_PROBABILITY = 0.12;
-    private static final int MAX_LITTER_SIZE = 2;
-    private static final int RABBIT_FOOD_VALUE = 3;
-    private static final Random rand = new Random();
+
+    // Characteristics shared by all snakes (static fields).
+
+    //Os atributos 'BREEDING_AGE', 'MAX_AGE', 'BREEDING_PROBABILITY', 'foodLevel', 'MAX_LITTER_SIZE', 'FOOD_VALUE' e 'rand' foram movidos para a classe Animal (comum entre todos os animais).
+    // BREEDING_AGE = 8;
+    // foodLevel = ??;
+    // MAX_AGE = 40;
+    // BREEDING_PROBABILITY = 0.112;
+    // MAX_LITTER_SIZE = 2;
+    // FOOD_VALUE = ??;
+    // rand = new Random();
+    
+    // Individual characteristics (instance fields).
+    // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
+    private static final int RABBIT_FOOD_VALUE = 3; // EM COMUM PARA OS PREDADORES
+
 
     private int foodLevel;
 

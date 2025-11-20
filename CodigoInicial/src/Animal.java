@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Random;
 
 /**
  * Classe abstrata que representa um animal no campo de simulação.
@@ -10,6 +11,19 @@ public abstract class Animal {
     private int age;
     private boolean alive;
     private Location location;
+    private int foodLevel;
+    private int FOOD_VALUE;
+
+    // The age at which an animal can start to breed.
+    private static final int BREEDING_AGE;
+    // The age to which an animal can live.
+    private static final int MAX_AGE;
+    // The likelihood of an animal breeding.
+    private static final double BREEDING_PROBABILITY;
+    // The maximum number of births.
+    private static final int MAX_LITTER_SIZE;
+    // A shared random number generator to control breeding.
+    private static final Random rand = new Random();
 
     /**
      * Construtor padrão. Inicializa o animal com idade 0 e vivo.

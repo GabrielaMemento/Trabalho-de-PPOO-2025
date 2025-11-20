@@ -10,22 +10,23 @@ import java.util.Random;
  *
  */
 public class Wolf extends Animal {
-    // Idade mínima para reprodução
-    private static final int BREEDING_AGE = 12;
-    // Idade máxima
-    private static final int MAX_AGE = 100;
-    // Probabilidade de reprodução
-    private static final double BREEDING_PROBABILITY = 0.07;
-    // Tamanho máximo da ninhada
-    private static final int MAX_LITTER_SIZE = 2;
-    // Valor nutricional de um coelho
-    private static final int RABBIT_FOOD_VALUE = 5;
-    // Gerador de números aleatórios
-    private static final Random rand = new Random();
 
-    // Nível de fome
-    private int foodLevel;
+    // Characteristics shared by all rabbits (static fields).
 
+    //Os atributos 'BREEDING_AGE', 'MAX_AGE', 'BREEDING_PROBABILITY', 'foodLevel', 'MAX_LITTER_SIZE', 'FOOD_VALUE' e 'rand' foram movidos para a classe Animal (comum entre todos os animais).
+    // BREEDING_AGE = 12;
+    // foodLevel = ??;
+    // MAX_AGE = 100;
+    // BREEDING_PROBABILITY = 0.07;
+    // MAX_LITTER_SIZE = 2;
+    // FOOD_VALUE = ??;
+    // rand = new Random();
+    
+    // Individual characteristics (instance fields).
+    // O atributo 'age', 'alive', 'foodLevel' e 'location' foram movidos para a classe Animal.
+    private static final int RABBIT_FOOD_VALUE = 5; // EM COMUM PARA OS PREDADORES
+
+    
     /**
      * Cria um lobo com idade aleatória ou recém-nascido.
      */

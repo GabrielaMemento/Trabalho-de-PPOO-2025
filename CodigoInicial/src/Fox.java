@@ -12,20 +12,23 @@ import java.util.Random;
 public class Fox extends Animal
 {
     // Characteristics shared by all foxes (static fields).
+
+    //Os atributos 'BREEDING_AGE', 'MAX_AGE', 'BREEDING_PROBABILITY', 'foodLevel', 'MAX_LITTER_SIZE', 'FOOD_VALUE' e 'rand' foram movidos para a classe Animal (comum entre todos os animais).
+    // BREEDING_AGE = 10;
+    // foodLevel = ??;
+    // MAX_AGE = 150;
+    // BREEDING_PROBABILITY = 0.09;
+    // MAX_LITTER_SIZE = 3;
+    // FOOD_VALUE = ??;
+    // rand = new Random();
     
-    // The age at which a fox can start to breed.
-    private static final int BREEDING_AGE = 10;
-    // The age to which a fox can live.
-    private static final int MAX_AGE = 150;
-    // The likelihood of a fox breeding.
-    private static final double BREEDING_PROBABILITY = 0.09;
-    // The maximum number of births.
-    private static final int MAX_LITTER_SIZE = 3;
+    // Individual characteristics (instance fields).
+    // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
+
     // The food value of a single rabbit. In effect, this is the
     // number of steps a fox can go before it has to eat again.
-    private static final int RABBIT_FOOD_VALUE = 4;
-    // A shared random number generator to control breeding.
-    private static final Random rand = new Random();
+    private static final int RABBIT_FOOD_VALUE = 4; // EM COMUM PARA OS PREDADORES
+
     
     // Individual characteristics (instance fields).
     // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
@@ -132,7 +135,7 @@ public class Fox extends Animal
     private Location findFood(Field field, Location location)
     {
         Iterator adjacentLocations =
-                          field.adjacentLocations(location);
+                        field.adjacentLocations(location);
         while(adjacentLocations.hasNext()) {
             Location where = (Location) adjacentLocations.next();
             Object animal = field.getObjectAt(where);

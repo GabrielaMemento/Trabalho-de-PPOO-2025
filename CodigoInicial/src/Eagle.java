@@ -10,14 +10,25 @@ import java.util.Iterator;
  * 
  */
 public class Eagle extends Animal {
-    private static final int BREEDING_AGE = 12;
-    private static final int MAX_AGE = 80;
-    private static final double BREEDING_PROBABILITY = 0.08;
-    private static final int MAX_LITTER_SIZE = 2;
-    private static final int FOOD_VALUE = 5;
-    private static final Random rand = new Random();
 
-    private int foodLevel;
+    // Characteristics shared by all rabbits (static fields).
+
+    //Os atributos 'BREEDING_AGE', 'MAX_AGE', 'BREEDING_PROBABILITY', 'foodLevel', 'MAX_LITTER_SIZE', 'FOOD_VALUE' e 'rand' foram movidos para a classe Animal (comum entre todos os animais).
+    // BREEDING_AGE = 12;
+    // foodLevel = ??;
+    // MAX_AGE = 80;
+    // BREEDING_PROBABILITY = 0.08;
+    // MAX_LITTER_SIZE = 2;
+    // FOOD_VALUE = ??;
+    // rand = new Random();
+    
+    // Individual characteristics (instance fields).
+    // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
+
+        // The food value of a single rabbit. In effect, this is the
+    // number of ???? an eagle can go before it has to eat again.
+    private static final int RABBIT_FOOD_VALUE = 4; // EM COMUM PARA OS PREDADORES // OBS: VAI SER DIFERENTE PRA EAGLE, PQ EAGLE NAO TEM PASSOS
+
 
     public Eagle(boolean randomAge) {
         super();
