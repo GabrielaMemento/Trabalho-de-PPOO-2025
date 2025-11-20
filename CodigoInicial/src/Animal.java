@@ -4,21 +4,28 @@ import java.util.Random;
 
 public abstract class Animal
 {
-private int BREEDING_AGE;
-private int MAX_AGE;
-private double BREEDING_PROBABILITY;
-private int MAX_LITTER_SIZE;
 private Random rand;
-private int age;
-private boolean alive;
-private Location location;
+private boolean randomAge;
+private static int BREEDING_AGE;
+private static int MAX_AGE;
+private static double BREEDING_PROBABILITY;
+private static int MAX_LITTER_SIZE;
+private static int age;
+private static boolean alive;
+private static Location location;
+private static int foodLevel;
 
 public Animal()
-{   age = 0; 
-    alive = true;
+{   
     rand = new Random();
+    randomAge = true;
     BREEDING_AGE = 0;
     MAX_AGE = 0;
+    BREEDING_PROBABILITY = 0;
+    MAX_LITTER_SIZE = 0;
+    age = 0; 
+    alive = true;
+    foodLevel = 0;
 }
 
 

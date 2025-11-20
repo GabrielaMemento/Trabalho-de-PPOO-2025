@@ -10,36 +10,18 @@ import java.util.Random;
  */
 public class Rabbit extends Animal
 {
-    // Characteristics shared by all rabbits (static fields).
-
-    // The age at which a rabbit can start to breed.
-    private static final int BREEDING_AGE = 5;
-    // The age to which a rabbit can live.
-    private static final int MAX_AGE = 50;
-    // The likelihood of a rabbit breeding.
-    private static final double BREEDING_PROBABILITY = 0.15;
-    // The maximum number of births.
-    private static final int MAX_LITTER_SIZE = 5;
-    // A shared random number generator to control breeding.
-    private static final Random rand = new Random();
-    
-    // Individual characteristics (instance fields).
-    
-    // The rabbit's age.
-    private int age;
-    // Whether the rabbit is alive or not.
-    private boolean alive;
-    // The rabbit's position
-    private Location location;
-
     /**
      * Create a new rabbit. A rabbit may be created with age
      * zero (a new born) or with a random age.
      * 
      * @param randomAge If true, the rabbit will have a random age.
      */
-    public Rabbit(boolean randomAge)
+    public Rabbit(Random rand, boolean randomAge, int BREEDING_AGE, int MAX_AGE, double BREEDING_PROBABILITY, int MAX_LITTER_SIZE, int age, boolean alive, Location location, int foodLevel)
     {
+        BREEDING_AGE = 5;
+        MAX_AGE = 50;
+        BREEDING_PROBABILITY = 0.15;
+        MAX_LITTER_SIZE = 5;
         age = 0;
         alive = true;
         if(randomAge) {
@@ -54,7 +36,7 @@ public class Rabbit extends Animal
     public void run(Field updatedField, List newRabbits)
     {
         incrementAge();
-        if(alive) {
+        if(isAlive()) {
             int births = breed();
             for(int b = 0; b < births; b++) {
                 Rabbit newRabbit = new Rabbit(false);

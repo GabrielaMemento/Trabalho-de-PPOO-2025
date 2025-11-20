@@ -12,40 +12,26 @@ import java.util.Random;
 public class Fox extends Animal
 {
     // Characteristics shared by all foxes (static fields).
-    
-    // The age at which a fox can start to breed.
-    private static final int BREEDING_AGE = 10;
-    // The age to which a fox can live.
-    private static final int MAX_AGE = 150;
-    // The likelihood of a fox breeding.
-    private static final double BREEDING_PROBABILITY = 0.09;
-    // The maximum number of births.
-    private static final int MAX_LITTER_SIZE = 3;
+
     // The food value of a single rabbit. In effect, this is the
     // number of steps a fox can go before it has to eat again.
     private static final int RABBIT_FOOD_VALUE = 4;
-    // A shared random number generator to control breeding.
-    private static final Random rand = new Random();
-    
-    // Individual characteristics (instance fields).
 
-    // The fox's age.
-    private int age;
-    // Whether the fox is alive or not.
-    private boolean alive;
-    // The fox's position
-    private Location location;
-    // The fox's food level, which is increased by eating rabbits.
-    private int foodLevel;
 
     /**
      * Create a fox. A fox can be created as a new born (age zero
      * and not hungry) or with random age.
      * 
      * @param randomAge If true, the fox will have random age and hunger level.
+     * @param BREEDING_AGE 
      */
-    public Fox(boolean randomAge)
+    public Fox(Random rand, boolean randomAge, int BREEDING_AGE, int MAX_AGE, double BREEDING_PROBABILITY, int MAX_LITTER_SIZE, int age, boolean alive, Location location, int foodLevel)
     {
+        super();
+        BREEDING_AGE = 10;
+        MAX_AGE = 150;
+        BREEDING_PROBABILITY = 0.09;
+        MAX_LITTER_SIZE = 3;
         age = 0;
         alive = true;
         if(randomAge) {
