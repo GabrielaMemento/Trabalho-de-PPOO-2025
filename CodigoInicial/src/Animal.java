@@ -1,96 +1,71 @@
 import java.util.List;
 import java.util.Random;
 
-/**
- * Classe abstrata que representa um animal no campo de simulação.
- * Cada animal possui idade, localização e estado de vida.
- * 
- * 
- */
-public abstract class Animal {
-    private int age;
-    private boolean alive;
-    private Location location;
-    private int foodLevel;
-    private int FOOD_VALUE;
 
-    // The age at which an animal can start to breed.
-    private static final int BREEDING_AGE;
-    // The age to which an animal can live.
-    private static final int MAX_AGE;
-    // The likelihood of an animal breeding.
-    private static final double BREEDING_PROBABILITY;
-    // The maximum number of births.
-    private static final int MAX_LITTER_SIZE;
-    // A shared random number generator to control breeding.
-    private static final Random rand = new Random();
+public abstract class Animal
+{
+private int BREEDING_AGE;
+private int MAX_AGE;
+private double BREEDING_PROBABILITY;
+private int MAX_LITTER_SIZE;
+private Random rand;
+private int age;
+private boolean alive;
+private Location location;
 
-    /**
-     * Construtor padrão. Inicializa o animal com idade 0 e vivo.
-     */
-    public Animal() {
-        age = 0;
-        alive = true;
+public Animal()
+{   age = 0; 
+    alive = true;
+    rand = new Random();
+    BREEDING_AGE = 0;
+    MAX_AGE = 0;
+}
+
+
+public void incrementAge()
+{
+    age++;
+    if(age > MAX_AGE) {
+    alive = false;
     }
+}
 
-    /**
-     * Define o comportamento do animal a cada passo da simulação.
-     * @param field Campo atual.
-     * @param updatedField Campo atualizado.
-     * @param newAnimals Lista para adicionar novos animais.
-     */
-    public abstract void act(Field field, Field updatedField, List<Animal> newAnimals);
-
-    /**
-     * Verifica se o animal está vivo.
-     */
-    public boolean isAlive() {
-        return alive;
+public int breed()
+{
+    int births = 0;
+    if(canBreed() && rand.nextDouble() <= BREEDING_PROBABILITY) {
+    births = rand.nextInt(MAX_LITTER_SIZE) + 1;
     }
+    return births;
+}
 
-    /**
-     * Marca o animal como morto.
-     */
-    protected void setDead() {
-        alive = false;
-    }
+public boolean canBreed()
+{
+    return age >= BREEDING_AGE;
+}
 
-    /**
-     * Incrementa a idade do animal e verifica se ele ultrapassou a idade máxima.
-     * @param maxAge Idade máxima permitida.
-     */
-    protected void incrementAge(int maxAge) {
-        age++;
-        if (age > maxAge) {
-            setDead();
-        }
-    }
+public Location getLocation()
+{
+    return location;
+}
 
-    /**
-     * Retorna a idade atual do animal.
-     */
-    protected int getAge() {
-        return age;
-    }
+public boolean isAlive()
+{
+    return alive;
+}
 
-    /**
-     * Define a idade do animal.
-     */
-    protected void setAge(int age) {
-        this.age = age;
-    }
+public void setDead() {
+    alive = false;
+}
 
-    /**
-     * Retorna a localização atual do animal.
-     */
-    public Location getLocation() {
-        return location;
-    }
+public void setLocation(int row, int col)
+{
+    this.location = new Location(row, col);
+}
 
-    /**
-     * Define a nova localização do animal.
-     */
-    public void setLocation(Location location) {
-        this.location = location;
-    }
+public void setLocation(Location location)
+{
+    this.location = location;
+}
+
 }
