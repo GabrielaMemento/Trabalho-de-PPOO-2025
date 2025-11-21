@@ -3,158 +3,143 @@ import java.util.Iterator;
 import java.util.Random;
 
 /**
- * A simple model of a fox.
- * Foxes age, move, eat rabbits, and die.
- * 
- * @author David J. Barnes and Michael Kolling
- * @version 2002-04-11
+ * Representa uma Raposa no simulador predador-presa.
+ * Raposas envelhecem, movem-se, caçam coelhos, reproduzem-se e podem morrer por fome,
+ * idade avançada ou superlotação.
+ *
+ * A classe foi refatorada para herdar de {@link Animal}, concentrando os
+ * atributos e comportamentos comuns aos animais (idade, estado de vida, localização),
+ * conforme boas práticas discutidas no livro de Barnes & Kolling.
+ *
  */
-public class Fox extends Animal
-{
-    // Characteristics shared by all foxes (static fields).
-    
-    // The age at which a fox can start to breed.
+public class Fox extends Animal {
+    // Idade mínima para reprodução (em passos de simulação)
     private static final int BREEDING_AGE = 10;
-    // The age to which a fox can live.
+    // Idade máxima que a raposa pode atingir antes de morrer
     private static final int MAX_AGE = 150;
-    // The likelihood of a fox breeding.
+    // Probabilidade de reprodução em um passo de simulação
     private static final double BREEDING_PROBABILITY = 0.09;
-    // The maximum number of births.
+    // Tamanho máximo de uma ninhada 
     private static final int MAX_LITTER_SIZE = 3;
-    // The food value of a single rabbit. In effect, this is the
-    // number of steps a fox can go before it has to eat again.
+    // Valor de comida obtido ao comer um coelho (passos sem precisar comer) 
     private static final int RABBIT_FOOD_VALUE = 4;
-    // A shared random number generator to control breeding.
-    private static final Random rand = new Random();
-    
-    // Individual characteristics (instance fields).
-    // O atributo 'age', 'alive' e 'location' foram movidos para a classe Animal.
+    // Limite máximo do nível de comida da raposa
+    private static final int MAX_FOOD_VALUE = 20;
 
-    // The fox's age.
-
-    // Whether the fox is alive or not.
-
-    // The fox's position
-
-    // The fox's food level, which is increased by eating rabbits.
+    // Nível atual de comida da raposa. Cai a cada passo e aumenta ao comer
     private int foodLevel;
 
     /**
-     * Create a fox. A fox can be created as a new born (age zero
-     * and not hungry) or with random age.
-     * 
-     * @param randomAge If true, the fox will have random age and hunger level.
+     * Cria uma nova Raposa
+     * Pode nascer com idade e fome aleatórias, ou iniciar jovem e alimentada
+     *
+     * @param randomAge Se true, inicializa com idade e fome aleatórias
      */
-    public Fox(boolean randomAge)
-    {
-        super();
+    public Fox(boolean randomAge) {
+        super(); // age = 0, alive = true, location = null
         if(randomAge) {
-            setAge(rand.nextInt(MAX_AGE));
-            foodLevel = rand.nextInt(RABBIT_FOOD_VALUE);
-        }
-        else {
-            // age já é 0 pelo construtor de Animal
-            foodLevel = RABBIT_FOOD_VALUE;
+            this.age = rand.nextInt(MAX_AGE);
+            this.foodLevel = rand.nextInt(RABBIT_FOOD_VALUE);
+        } else {
+            this.foodLevel = RABBIT_FOOD_VALUE;
         }
     }
-    
+
     /**
-     * This is what the fox does most of the time: it hunts for
-     * rabbits. In the process, it might breed, die of hunger,
-     * or die of old age.
-     */
-    /**
-     * Isso é o que a raposa faz na maior parte do tempo: caça coelhos.
-     * No processo, ela pode se reproduzir, morrer de fome ou morrer de velhice.
+     * Ação principal da raposa em um passo da simulação
+     * Ela envelhece, fica com fome, tenta reproduzir e procura alimento (coelhos)
+     * Caso não encontre alimento, move-se para uma posição livre adjacente
+     * Se não houver espaço, morre por superlotação
+     *
+     * @param currentField O campo atual onde a raposa está
+     * @param updatedField O campo de próxima geração onde resultados são aplicados
+     * @param newAnimals Lista onde novos animais (filhotes) são adicionados
      */
     @Override
-    public void act(Field currentField, Field updatedField, List newFoxes)
-    {
+    public void act(Field currentField, Field updatedField, List<Animal> newAnimals) {
         incrementAge();
         incrementHunger();
         if(isAlive()) {
-            // New foxes are born into adjacent locations.
+            // Reprodução
             int births = breed();
             for(int b = 0; b < births; b++) {
                 Fox newFox = new Fox(false);
-                newFoxes.add(newFox);
+                newAnimals.add(newFox);
                 Location loc = updatedField.randomAdjacentLocation(getLocation());
                 newFox.setLocation(loc);
                 updatedField.place(newFox, loc);
             }
-            // Move towards the source of food if found.
+            // Caça por alimento (coelhos)
             Location newLocation = findFood(currentField, getLocation());
-            if(newLocation == null) {  // no food found - move randomly
+            if(newLocation == null) {
                 newLocation = updatedField.freeAdjacentLocation(getLocation());
             }
             if(newLocation != null) {
                 setLocation(newLocation);
                 updatedField.place(this, newLocation);
-            }
-            else {
-                // can neither move nor stay - overcrowding - all locations taken
-                setDead();
+            } else {
+                setDead(); // morreu por superlotação
             }
         }
     }
-    
+
     /**
-     * Increase the age. This could result in the fox's death.
+     * Incrementa a idade da raposa e verifica morte por idade avançada
      */
-    /**
-     * Aumenta a idade. Isso pode resultar na morte da raposa.
-     */
-    private void incrementAge()
-    {
-        incrementAge(MAX_AGE);
+    @Override
+    public void incrementAge() {
+        age++;
+        if(age > MAX_AGE) {
+            setDead();
+        }
     }
-    
+
     /**
-     * Make this fox more hungry. This could result in the fox's death.
+     * Reduz o nível de comida, causando morte se chegar a zero
      */
-    /**
-     * Deixa a raposa mais faminta. Isso pode resultar na morte da raposa.
-     */
-    private void incrementHunger()
-    {
+    public void incrementHunger() {
         foodLevel--;
         if(foodLevel <= 0) {
             setDead();
         }
     }
-    
+
     /**
-     * Tell the fox to look for rabbits adjacent to its current location.
-     * @param field The field in which it must look.
-     * @param location Where in the field it is located.
-     * @return Where food was found, or null if it wasn't.
+     * Procura por alimento (coelhos) nas posições adjacentes
+     * Ao encontrar um coelho vivo, o mata, aumenta o nível de comida
+     * e retorna sua posição para a raposa mover-se para lá
+     *
+     * @param field Campo em que a busca é realizada
+     * @param location Posição atual da raposa
+     * @return A localização do alimento encontrado, ou null se não houver
      */
-    private Location findFood(Field field, Location location)
-    {
-        Iterator adjacentLocations =
-                          field.adjacentLocations(location);
-        while(adjacentLocations.hasNext()) {
-            Location where = (Location) adjacentLocations.next();
+    public Location findFood(Field field, Location location) {
+        Iterator<Location> it = field.adjacentLocations(location);
+        while(it.hasNext()) {
+            Location where = it.next();
             Object animal = field.getObjectAt(where);
             if(animal instanceof Rabbit) {
                 Rabbit rabbit = (Rabbit) animal;
-                if(rabbit.isAlive()) { 
-                    rabbit.setEaten();
-                    foodLevel = RABBIT_FOOD_VALUE;
+                if(rabbit.isAlive()) {
+                    rabbit.setDead();
+                    foodLevel += RABBIT_FOOD_VALUE;
+                    if(foodLevel > MAX_FOOD_VALUE) {
+                        foodLevel = MAX_FOOD_VALUE;
+                    }
                     return where;
                 }
             }
         }
         return null;
     }
-        
+
     /**
-     * Generate a number representing the number of births,
-     * if it can breed.
-     * @return The number of births (may be zero).
+     * Calcula o número de nascimentos neste passo, segundo a probabilidade da espécie
+     *
+     * @return Quantidade de filhotes gerados (0 a MAX_LITTER_SIZE)
      */
-    private int breed()
-    {
+    @Override
+    public int breed() {
         int births = 0;
         if(canBreed() && rand.nextDouble() <= BREEDING_PROBABILITY) {
             births = rand.nextInt(MAX_LITTER_SIZE) + 1;
@@ -163,35 +148,22 @@ public class Fox extends Animal
     }
 
     /**
-     * A fox can breed if it has reached the breeding age.
+     * Indica se a raposa já pode se reproduzir
+     *
+     * @return true se a idade for maior ou igual a BREEDING_AGE
      */
-    private boolean canBreed()
-    {
-        return getAge() >= BREEDING_AGE;
-    }
-    
-    /**
-     * Check whether the fox is alive or not.
-     * @return True if the fox is still alive.
-     */
-
-
-    /**
-     * Set the animal's location.
-     * @param row The vertical coordinate of the location.
-     * @param col The horizontal coordinate of the location.
-     */
-
-
-    /**
-     * Set the fox's location.
-     * @param location The fox's location.
-     */
-    // O método setLocation(Location) foi movido para a classe Animal.
-    // O método setLocation(int, int) foi removido, pois a versão com Location é suficiente.
     @Override
-    public void setLocation(Location location)
-    {
-        super.setLocation(location);
+    public boolean canBreed() {
+        return age >= BREEDING_AGE;
     }
 }
+
+
+/*
+* - Construtor simples (new Fox(boolean randomAge)), sem parâmetros inúteis.
+    - Constantes da espécie (BREEDING_AGE, MAX_AGE, etc.) definidas dentro da classe.
+    - Método findFood corrigido para receber Field como parâmetro.
+    - Uso correto da herança: atributos comuns (age, alive, location) vêm de Animal.
+    - Método act() substitui hunt(), permitindo polimorfismo.
+
+ */
