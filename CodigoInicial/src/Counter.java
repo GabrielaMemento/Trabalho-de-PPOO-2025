@@ -1,60 +1,47 @@
-import java.awt.Color;
-
 /**
- * Provide a counter for a participant in the simulation.
- * This includes an identifying string and a count of how
- * many participants of this type currently exist within 
- * the simulation.
+ * Classe responsável por contar participantes de um tipo específico na simulação.
  * 
- * @author David J. Barnes and Michael Kolling
- * @version 2002-04-23
+ * Cada instância de {@code Counter} representa uma espécie ou elemento
+ * (ex.: "Raposa", "Coelho") e mantém o número atual de indivíduos desse tipo
+ * presentes no campo da simulação.
+ *
+ * É utilizada pela classe {@link FieldStats} para calcular estatísticas
+ * populacionais e exibir os resultados na interface gráfica.
+ *
  */
-public class Counter
-{
-    // A name for this type of simulation participant
+public class Counter {
+    // Nome que identifica o tipo de participante (ex.: "Raposa")
     private String name;
-    // How many of this type exist in the simulation.
+    // Quantidade atual desse tipo na simulação
     private int count;
 
     /**
-     * Provide a name for one of the simulation types.
-     * @param name  A name, e.g. "Fox".
+     * Cria um contador para um tipo específico
+     *
+     * @param name nome do tipo (ex.: "Coelho")
      */
-    public Counter(String name)
-    {
+    public Counter(String name) {
         this.name = name;
         count = 0;
     }
-    
-    /**
-     * @return The short description of this type.
-     */
-    public String getName()
-    {
+
+    // @return o nome do tipo associado a este contador
+    public String getName() {
         return name;
     }
 
-    /**
-     * @return The current count for this type.
-     */
-    public int getCount()
-    {
+    // @return o valor atual do contador. 
+    public int getCount() {
         return count;
     }
 
-    /**
-     * Increment the current count by one.
-     */
-    public void increment()
-    {
+    // Incrementa o contador em uma unidade
+    public void increment() {
         count++;
     }
-    
-    /**
-     * Reset the current count to zero.
-     */
-    public void reset()
-    {
+
+    // Reseta o contador para zero
+    public void reset() {
         count = 0;
     }
 }
