@@ -36,7 +36,7 @@ public class SimulatorView extends JFrame
     public SimulatorView(int height, int width)
     {
         stats = new FieldStats();
-        colors = new HashMap<Class<?>, Color>();
+        colors = new HashMap<Class<?>, Color>(); // Uso de ? para tipo genérico
 
         setTitle("Fox and Rabbit Simulation");
         stepLabel = new JLabel(STEP_PREFIX, JLabel.CENTER);

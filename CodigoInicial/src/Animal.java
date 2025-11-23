@@ -4,6 +4,10 @@ import java.util.Random;
 
 public abstract class Animal
 {
+
+/**
+ * Atributos comuns a todos os animais
+ *  */
 private static Random rand;
 private int age;
 private boolean alive;
@@ -22,6 +26,10 @@ public Animal(boolean randomAge, Field field, Location location)
             this.age = rand.nextInt(getMaxAge()); 
         }
 }
+
+/**
+ * Métodos comuns a todos os animais
+ *  */
 
 public abstract int getMaxAge();
 public abstract int getBreedingAge();

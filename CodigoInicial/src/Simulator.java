@@ -91,9 +91,7 @@ public class Simulator
     }
     
     /**
-     * Run the simulation from its current state for a single step.
-     * Iterate over the whole field updating the state of each
-     * fox and rabbit.
+    * Adaptado para funcionar para qualquer animal
      */
     public void simulateOneStep()
     {
@@ -138,7 +136,7 @@ public class Simulator
     }
     
         /**
-         * Populate the field with foxes and rabbits.
+         * Permite popular com qualquer tipo, bastando adicionar o objeto a lista
          */
         private void populate(Field field)
         {

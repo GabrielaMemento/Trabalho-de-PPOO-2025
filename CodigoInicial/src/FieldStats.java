@@ -12,7 +12,7 @@ import java.util.Iterator;
 public class FieldStats
 {
     // Counters for each type of entity (fox, rabbit, etc.) in the simulation.
-    private HashMap<Class<?>,Counter> counters;
+    private HashMap<Class<?>,Counter> counters; // Uso de ? para tipo genérico
     // Whether the counters are currently up to date.
     private boolean countsValid;
 
