@@ -5,49 +5,45 @@ import java.util.Random;
 public abstract class Animal
 {
 private static Random rand;
-private static int BREEDING_AGE;
-private static int MAX_AGE;
-private static double BREEDING_PROBABILITY;
-private static int MAX_LITTER_SIZE;
-private static int age;
-private static boolean alive;
+private int age;
+private boolean alive;
 private Location location;
-private static int foodLevel;
+private Field field;
 
-public Animal()
+public Animal(boolean randomAge, Field field, Location location)
 {   
     rand = new Random();
-    BREEDING_AGE = 0;
-    MAX_AGE = 0;
-    BREEDING_PROBABILITY = 0;
-    MAX_LITTER_SIZE = 0;
-    age = 0; 
-    alive = true;
-    location = null;
-    foodLevel = 0;
+    this.age = 0; 
+    this.alive = true;
+    this.field = field;
+    setLocation(location);
+
+    if (randomAge) {
+            this.age = rand.nextInt(getMaxAge()); 
+        }
 }
 
+public abstract int getMaxAge();
+public abstract int getBreedingAge();
+public abstract void act(List<Animal> newAnimals);
 
 public void incrementAge()
 {
     age++;
-    if(age > MAX_AGE) {
-    alive = false;
+    if(age > getMaxAge()) {
+    setDead();
     }
 }
 
-public int breed()
-{
-    int births = 0;
-    if(canBreed() && rand.nextDouble() <= BREEDING_PROBABILITY) {
-    births = rand.nextInt(MAX_LITTER_SIZE) + 1;
-    }
-    return births;
-}
 
 public boolean canBreed()
 {
-    return age >= BREEDING_AGE;
+    return age >= getBreedingAge();
+}
+
+public Field getField() 
+{
+    return field;
 }
 
 public Location getLocation()
@@ -62,6 +58,12 @@ public boolean isAlive()
 
 public void setDead() {
     alive = false;
+
+    if (location != null && field != null) {
+            field.clear(location);
+            location = null;
+            field = null;
+        }
 }
 
 public void setLocation(int row, int col)
@@ -74,12 +76,6 @@ public void setLocation(Location location)
     this.location = location;
 }
 
-public void incrementHunger()
-{
-    foodLevel--;
-    if(foodLevel <= 0) {
-        alive = false;
-    }
-}
+
 
 }

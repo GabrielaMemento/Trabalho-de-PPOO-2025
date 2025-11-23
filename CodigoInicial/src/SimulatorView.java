@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 import java.util.HashMap;
 
@@ -27,7 +26,7 @@ public class SimulatorView extends JFrame
     private FieldView fieldView;
     
     // A map for storing colors for participants in the simulation
-    private HashMap colors;
+    private HashMap<Class<?>, Color> colors;
     // A statistics object computing and storing simulation information
     private FieldStats stats;
 
@@ -37,7 +36,7 @@ public class SimulatorView extends JFrame
     public SimulatorView(int height, int width)
     {
         stats = new FieldStats();
-        colors = new HashMap();
+        colors = new HashMap<Class<?>, Color>();
 
         setTitle("Fox and Rabbit Simulation");
         stepLabel = new JLabel(STEP_PREFIX, JLabel.CENTER);
@@ -58,7 +57,7 @@ public class SimulatorView extends JFrame
     /**
      * Define a color to be used for a given class of animal.
      */
-    public void setColor(Class animalClass, Color color)
+    public void setColor(Class<?> animalClass, Color color)
     {
         colors.put(animalClass, color);
     }
@@ -66,9 +65,9 @@ public class SimulatorView extends JFrame
     /**
      * Define a color to be used for a given class of animal.
      */
-    private Color getColor(Class animalClass)
+    private Color getColor(Class<?> animalClass)
     {
-        Color col = (Color)colors.get(animalClass);
+        Color col = colors.get(animalClass);
         if(col == null) {
             // no color defined for this class
             return UNKNOWN_COLOR;

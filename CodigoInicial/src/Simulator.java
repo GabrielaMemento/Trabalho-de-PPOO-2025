@@ -2,7 +2,6 @@ import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Collections;
 import java.awt.Color;
 
 /**
@@ -26,9 +25,7 @@ public class Simulator
     private static final double RABBIT_CREATION_PROBABILITY = 0.08;    
 
     // The list of animals in the field
-    private List animals;
-    // The list of animals just born
-    private List newAnimals;
+    private final ArrayList<Animal> animals;
     // The current state of the field.
     private Field field;
     // A second field, used to build the next stage of the simulation.
@@ -37,6 +34,8 @@ public class Simulator
     private int step;
     // A graphical view of the simulation.
     private SimulatorView view;
+
+    private final Random rand = new Random();
     
     /**
      * Construct a simulation field with default size.
@@ -59,17 +58,15 @@ public class Simulator
             depth = DEFAULT_DEPTH;
             width = DEFAULT_WIDTH;
         }
-        animals = new ArrayList();
-        newAnimals = new ArrayList();
+        animals = new ArrayList<>();
         field = new Field(depth, width);
-        updatedField = new Field(depth, width);
 
-        // Create a view of the state of each location in the field.
         view = new SimulatorView(depth, width);
         view.setColor(Fox.class, Color.blue);
         view.setColor(Rabbit.class, Color.orange);
-        
-        // Setup a valid starting point.
+
+        updatedField = new Field(depth, width);
+
         reset();
     }
     
@@ -101,36 +98,20 @@ public class Simulator
     public void simulateOneStep()
     {
         step++;
-        newAnimals.clear();
-        
+        List<Animal> newAnimals = new ArrayList<>();
+
         // let all animals act
-        for(Iterator iter = animals.iterator(); iter.hasNext(); ) {
-            Object animal = iter.next();
-            if(animal instanceof Rabbit) {
-                Rabbit rabbit = (Rabbit)animal;
-                if(rabbit.isAlive()) {
-                    rabbit.run(updatedField, newAnimals);
-                }
-                else {
-                    iter.remove();   // remove dead rabbits from collection
-                }
-            }
-            else if(animal instanceof Fox) {
-                Fox fox = (Fox)animal;
-                if(fox.isAlive()) {
-                    fox.hunt(field, updatedField, newAnimals);
-                }
-                else {
-                    iter.remove();   // remove dead foxes from collection
-                }
-            }
-            else {
-                System.out.println("found unknown animal");
+        for(Iterator<Animal> iter = animals.iterator(); iter.hasNext(); ) {
+            Animal animal = iter.next();
+            animal.act(newAnimals);
+            if (!animal.isAlive()) {
+                iter.remove();
             }
         }
+
         // add new born animals to the list of animals
         animals.addAll(newAnimals);
-        
+
         // Swap the field and updatedField at the end of the step.
         Field temp = field;
         field = updatedField;
@@ -156,30 +137,25 @@ public class Simulator
         view.showStatus(step, field);
     }
     
-    /**
-     * Populate the field with foxes and rabbits.
-     */
-    private void populate(Field field)
-    {
-        Random rand = new Random();
-        field.clear();
-        for(int row = 0; row < field.getDepth(); row++) {
-            for(int col = 0; col < field.getWidth(); col++) {
-                if(rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
-                    Fox fox = new Fox(true);
-                    animals.add(fox);
-                    fox.setLocation(row, col);
-                    field.place(fox, row, col);
+        /**
+         * Populate the field with foxes and rabbits.
+         */
+        private void populate(Field field)
+        {
+            field.clear();
+            for(int row = 0; row < field.getDepth(); row++) {
+                for(int col = 0; col < field.getWidth(); col++) {
+                    double random = rand.nextDouble();
+                    Location location = new Location (row,col);
+
+                    if(random <= FOX_CREATION_PROBABILITY) {
+                        animals.add(new Fox(true,field,location));
+                    }
+                    else if(random <= RABBIT_CREATION_PROBABILITY) {
+                        animals.add(new Rabbit(true,field,location));
+                    }
                 }
-                else if(rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
-                    Rabbit rabbit = new Rabbit(true);
-                    animals.add(rabbit);
-                    rabbit.setLocation(row, col);
-                    field.place(rabbit, row, col);
-                }
-                // else leave the location empty.
             }
         }
-        Collections.shuffle(animals);
     }
-}
+

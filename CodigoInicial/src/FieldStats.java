@@ -1,4 +1,3 @@
-import java.awt.Color;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -13,7 +12,7 @@ import java.util.Iterator;
 public class FieldStats
 {
     // Counters for each type of entity (fox, rabbit, etc.) in the simulation.
-    private HashMap counters;
+    private HashMap<Class<?>,Counter> counters;
     // Whether the counters are currently up to date.
     private boolean countsValid;
 
@@ -24,7 +23,7 @@ public class FieldStats
     {
         // Set up a collection for counters for each type of animal that
         // we might find
-        counters = new HashMap();
+        counters = new HashMap<Class<?>,Counter>();
         countsValid = true;
     }
 
@@ -37,9 +36,10 @@ public class FieldStats
         if(!countsValid) {
             generateCounts(field);
         }
-        Iterator keys = counters.keySet().iterator();
+        Iterator<Class<?>> keys = counters.keySet().iterator();
         while(keys.hasNext()) {
-            Counter info = (Counter) counters.get(keys.next());
+            Class<?> key = keys.next();
+            Counter info = counters.get(key);
             buffer.append(info.getName());
             buffer.append(": ");
             buffer.append(info.getCount());
@@ -54,18 +54,19 @@ public class FieldStats
      */
     public void reset()
     {
-        countsValid = false;
-        Iterator keys = counters.keySet().iterator();
+        Iterator<Class<?>> keys = counters.keySet().iterator();
         while(keys.hasNext()) {
-            Counter cnt = (Counter) counters.get(keys.next());
+            Class<?> key = keys.next();
+            Counter cnt = counters.get(key);
             cnt.reset();
         }
-    }
+        }
+    
 
     /**
      * Increment the count for one class of animal.
      */
-    public void incrementCount(Class animalClass)
+    public void incrementCount(Class<?> animalClass)
     {
         Counter cnt = (Counter) counters.get(animalClass);
         if(cnt == null) {
@@ -96,15 +97,17 @@ public class FieldStats
         if(!countsValid) {
             generateCounts(field);
         }
-        Iterator keys = counters.keySet().iterator();
+        Iterator<Class<?>> keys = counters.keySet().iterator();
         while(keys.hasNext()) {
-            Counter info = (Counter) counters.get(keys.next());
+            Class<?> key = keys.next();
+            Counter info = counters.get(key);
             if(info.getCount() > 0) {
                 nonZero++;
             }
         }
         return nonZero > 1;
     }
+    
     
     /**
      * Generate counts of the number of foxes and rabbits.

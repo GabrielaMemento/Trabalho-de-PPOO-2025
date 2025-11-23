@@ -10,53 +10,65 @@ import java.util.Random;
  */
 public class Rabbit extends Animal
 {
+    private static final int BREEDING_AGE = 5;
+    private static final int MAX_AGE = 40;
+    private static final double BREEDING_PROBABILITY = 0.15;
+    private static final int MAX_LITTER_SIZE = 4;
+    private static final Random RAND = new Random();
+
     /**
      * Create a new rabbit. A rabbit may be created with age
      * zero (a new born) or with a random age.
      * 
      * @param randomAge If true, the rabbit will have a random age.
      */
-    public Rabbit(Random rand, boolean randomAge, int BREEDING_AGE, int MAX_AGE, double BREEDING_PROBABILITY, int MAX_LITTER_SIZE, int age, boolean alive, Location location, int foodLevel)
+    public Rabbit(boolean randomAge, Field field, Location location)
     {
-        BREEDING_AGE = 5;
-        MAX_AGE = 50;
-        BREEDING_PROBABILITY = 0.15;
-        MAX_LITTER_SIZE = 5;
-        age = 0;
-        alive = true;
-        if(randomAge) {
-            age = rand.nextInt(MAX_AGE);
+        super(randomAge, field, location);
+    }
+    
+
+    @Override
+    public void act(List<Animal> newAnimals) {
+        incrementAge();
+        if (!isAlive()) return;
+
+        giveBirth(newAnimals);
+
+        Field field = getField();
+        Location next = field.freeAdjacentLocation(getLocation());
+        if (next != null) {
+            setLocation(next);
+        } else {
+            
+            setDead();
+        }
+    }
+
+    private int breed() {
+        if (canBreed() && RAND.nextDouble() <= BREEDING_PROBABILITY) {
+            return RAND.nextInt(MAX_LITTER_SIZE) + 1;
+        }
+        return 0;
+    }
+
+    @Override
+    public int getBreedingAge() { 
+        return BREEDING_AGE; 
+    }
+
+    @Override
+    public int getMaxAge() { 
+        return MAX_AGE; 
+    }
+    private void giveBirth(List<Animal> newAnimals) {
+        Field field = getField();
+        List<Location> free = field.getFreeAdjacent(getLocation());
+        int births = breed();
+        for (int b = 0; b < births && !free.isEmpty(); b++) {
+            Location loc = free.remove(0);
+            newAnimals.add(new Rabbit(false, field, loc));
         }
     }
     
-    /**
-     * This is what the rabbit does most of the time - it runs 
-     * around. Sometimes it will breed or die of old age.
-     */
-    public void run(Field updatedField, List newRabbits)
-    {
-        incrementAge();
-        if(isAlive()) {
-            int births = breed();
-            for(int b = 0; b < births; b++) {
-                Rabbit newRabbit = new Rabbit(null, false, b, b, b, b, b, false, null, b);
-                newRabbits.add(newRabbit);
-                Location loc = updatedField.randomAdjacentLocation(getLocation());
-                newRabbit.setLocation(loc);
-                updatedField.place(newRabbit, loc);
-            }
-            Location newLocation = updatedField.freeAdjacentLocation(getLocation());
-            // Only transfer to the updated field if there was a free location
-            if(newLocation != null) {
-                setLocation(newLocation);
-                updatedField.place(this, newLocation);
-            }
-            else {
-                // can neither move nor stay - overcrowding - all locations taken
-                setDead();
-            }
-        }
-    }
-
-
 }
