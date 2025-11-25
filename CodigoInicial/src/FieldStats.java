@@ -1,121 +1,110 @@
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
- * Classe responsável por coletar e fornecer estatísticas sobre o estado do campo
- * 
- * O {@code FieldStats} mantém contadores para cada tipo de entidade presente
- * na simulação (raposas, coelhos, plantas, caçadores, etc.). É flexível: cria
- * automaticamente um contador para qualquer classe encontrada no campo
+ * Responsável por calcular e manter estatísticas de população no campo.
  *
- * Essas estatísticas são utilizadas pela interface gráfica {@link SimulatorView}
- * para exibir informações populacionais e verificar se a simulação ainda é viável
+ * - Conta quantos objetos de cada classe (animais, plantas) existem no campo.
+ * - Armazena os resultados em um mapa de contadores (Counter).
+ * - Permite verificar se a simulação ainda é viável (mais de uma espécie presente).
  *
+ * Convenções:
+ * - As contagens são recalculadas apenas quando necessário (lazy evaluation).
+ * - O método {@link #reset()} invalida as contagens, forçando nova geração.
+ * - O método {@link #generateCounts(Field)} percorre todo o campo e atualiza os contadores.
+ *
+ * Usado principalmente pela classe {@link SimulatorView} para exibir estatísticas
+ * e determinar se a simulação deve continuar.
+ *
+ * @author
+ *   Base: Barnes & Kolling
+ * @version
+ *   2002-04-23 (comentado e revisado em 2025-11)
  */
 public class FieldStats {
-    // Mapa de contadores para cada tipo de entidade
-    private HashMap<Class, Counter> counters;
-    // Indica se os contadores estão atualizados
-    private boolean countsValid;
-
-    // Constrói um objeto de estatísticas do campo
-    public FieldStats() {
-        counters = new HashMap<>();
-        countsValid = true;
-    }
+    /** Mapa de contadores, indexado pela classe de cada entidade (Animal, Plant, etc.). */
+    private final HashMap<Class<?>, Counter> counters = new HashMap<>();
+    /** Indica se as contagens atuais são válidas ou precisam ser recalculadas. */
+    private boolean countsValid = true;
 
     /**
-     * Retorna uma string com detalhes populacionais do campo
-     * Exemplo: "Raposa: 10 Coelho: 25"
+     * Retorna uma string com os detalhes da população atual.
+     * Exemplo: "Rabbit: 25 Fox: 10 Alecrim: 15"
      *
-     * @param field campo da simulação
-     * @return string com estatísticas populacionais
+     * @param field campo da simulação.
+     * @return string com nome e quantidade de cada classe presente.
      */
     public String getPopulationDetails(Field field) {
-        StringBuffer buffer = new StringBuffer();
-        if(!countsValid) {
-            generateCounts(field);
+        if (!countsValid) generateCounts(field);
+        StringBuilder buffer = new StringBuilder();
+        for (Counter c : counters.values()) {
+            buffer.append(c.getName()).append(": ").append(c.getCount()).append(" ");
         }
-        Iterator<Class> keys = counters.keySet().iterator();
-        while(keys.hasNext()) {
-            Counter info = counters.get(keys.next());
-            buffer.append(info.getName());
-            buffer.append(": ");
-            buffer.append(info.getCount());
-            buffer.append(' ');
-        }
-        return buffer.toString();
-    }
-
-    
-     //Invalida as estatísticas atuais e reseta todos os contadores.
-    public void reset() {
-        countsValid = false;
-        Iterator<Class> keys = counters.keySet().iterator();
-        while(keys.hasNext()) {
-            Counter cnt = counters.get(keys.next());
-            cnt.reset();
-        }
+        return buffer.toString().trim();
     }
 
     /**
-     * Incrementa o contador de uma classe de entidade
-     * Cria um novo contador se ainda não existir
-     *
-     * @param entityClass classe da entidade (ex.: Raposa, Coelho)
+     * Invalida as contagens atuais e zera todos os contadores.
+     * Deve ser chamado antes de recalcular estatísticas.
      */
-    public void incrementCount(Class entityClass) {
+    public void reset() {
+        countsValid = false;
+        for (Counter c : counters.values()) c.reset();
+    }
+
+    /**
+     * Incrementa o contador associado a uma classe específica.
+     * Se ainda não existir contador para a classe, cria um novo.
+     *
+     * @param entityClass classe da entidade (ex.: Rabbit.class, Fox.class).
+     */
+    public void incrementCount(Class<?> entityClass) {
         Counter cnt = counters.get(entityClass);
-        if(cnt == null) {
-            cnt = new Counter(entityClass.getName());
+        if (cnt == null) {
+            cnt = new Counter(entityClass.getSimpleName());
             counters.put(entityClass, cnt);
         }
         cnt.increment();
     }
 
-    // Marca que os contadores estão atualizados. 
-    public void countFinished() {
-        countsValid = true;
-    }
-
     /**
-     * Verifica se a simulação ainda é viável
-     * Considera viável se houver mais de uma espécie viva
+     * Verifica se a simulação ainda é viável.
+     * Critério: deve haver mais de uma espécie com população > 0.
      *
-     * @param field campo da simulação
-     * @return true se houver mais de uma espécie com população > 0
+     * @param field campo da simulação.
+     * @return true se mais de uma espécie está presente; false caso contrário.
      */
     public boolean isViable(Field field) {
+        if (!countsValid) generateCounts(field);
         int nonZero = 0;
-        if(!countsValid) {
-            generateCounts(field);
-        }
-        Iterator<Class> keys = counters.keySet().iterator();
-        while(keys.hasNext()) {
-            Counter info = counters.get(keys.next());
-            if(info.getCount() > 0) {
-                nonZero++;
-            }
+        for (Counter c : counters.values()) {
+            if (c.getCount() > 0) nonZero++;
         }
         return nonZero > 1;
     }
 
     /**
-     * Gera contadores atualizados percorrendo todo o campo
-     * Este método é chamado apenas quando necessário
-     *
-     * @param field campo da simulação
+     * Percorre todo o campo e gera novas contagens de população.
+     * - Zera os contadores existentes.
+     * - Para cada célula ocupada, incrementa o contador da classe correspondente.
+  *   
+     * @param field campo da simulação.
      */
     private void generateCounts(Field field) {
         reset();
-        for(int row = 0; row < field.getDepth(); row++) {
-            for(int col = 0; col < field.getWidth(); col++) {
-                Object entity = field.getObjectAt(row, col);
-                if(entity != null) {
-                    incrementCount(entity.getClass());
-                }
+        for (int row = 0; row < field.getDepth(); row++) {
+            for (int col = 0; col < field.getWidth(); col++) {
+                Object obj = field.getObjectAt(new Location(row, col));
+                if (obj != null) incrementCount(obj.getClass());
             }
         }
+        countsValid = true;
+    }
+
+    /**
+     * Compatibilidade com versões antigas: finaliza a contagem.
+     * Se sua lógica não usar este método, pode ser omitido.
+     */
+    public void countFinished() {
         countsValid = true;
     }
 }
