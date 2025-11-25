@@ -141,6 +141,6 @@ public abstract class Animal {
      * @return o campo ao qual este animal pertence (pode ser null se morto).
      */
     public Field getField() {
-         return field;
+        return field;
     }
 }
