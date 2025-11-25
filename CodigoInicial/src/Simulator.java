@@ -2,208 +2,173 @@ import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Collections;
 import java.awt.Color;
 
 /**
- * Classe principal do simulador predador-presa.
- * 
- * Este simulador coordena a execução da simulação ecológica,
- * controlando o tempo, o campo, os animais e a interface gráfica.
- * Ele gerencia a criação inicial dos animais, os ciclos de vida,
- * reprodução, movimentação e morte, além de atualizar a visualização
- * a cada passo
- * 
- * Inicialmente, o simulador trabalha com duas espécies: raposas
- * (predadores) e coelhos (presas). Novas espécies podem ser adicionadas
- * facilmente, desde que herdem da classe {@code Animal} e implementem
- * o método {@code act}
- * 
- * O campo é representado por duas instâncias de {@link Field}:
- * uma para o estado atual e outra para o próximo estado. Isso evita
- * conflitos durante a movimentação dos animais
- * 
- * A interface gráfica {@link SimulatorView} mostra o campo e
- * as estatísticas populacionais em tempo real
- * 
-
+ * Classe principal da simulação do ecossistema.
+ *
+ * Responsabilidades:
+ * - Controlar o ciclo da simulação (passos, reinício, execução longa).
+ * - Manter a lista de animais ativos e o campo (Field) com objetos e terrenos.
+ * - Popular o campo inicial com raposas, coelhos e plantas (Alecrim, Sálvia).
+ * - Coordenar a interação entre animais e plantas a cada passo.
+ * - Atualizar a interface gráfica (SimulatorView) com o estado atual.
+ *
+ * Convenções:
+ * - Cada passo da simulação corresponde a uma chamada de {@link #simulateOneStep()}.
+ * - Animais mortos são removidos da lista principal.
+ * - Novos animais nascidos são adicionados ao final de cada passo.
+ * - A simulação continua enquanto for viável (mais de uma espécie presente).
+ *
+ * Extensões:
+ * - Probabilidades de criação de espécies podem ser ajustadas para calibrar o ecossistema.
+ * - Novos tipos de animais ou plantas podem ser adicionados na função {@link #populate(Field)}.
+ *
+ * @author
+ *   Base: Barnes & Kolling
+ * @version
+ *   2002-04-23 (comentado e revisado em 2025-11 para plantas e terrenos)
  */
 public class Simulator {
-    //Largura padrão do campo (número de colunas)
+    /** Largura padrão do campo (número de colunas). */
     private static final int DEFAULT_WIDTH = 50;
     /** Profundidade padrão do campo (número de linhas). */
     private static final int DEFAULT_DEPTH = 50;
 
-    /** Probabilidade de criação de uma raposa em cada célula. */
+    /** Probabilidade de criação inicial de raposas em cada célula. */
     private static final double FOX_CREATION_PROBABILITY = 0.02;
-    /** Probabilidade de criação de um coelho em cada célula. */
+    /** Probabilidade de criação inicial de coelhos em cada célula. */
     private static final double RABBIT_CREATION_PROBABILITY = 0.08;
+    /** Probabilidade de criação inicial de plantas em cada célula. */
+    private static final double PLANT_CREATION_PROBABILITY = 0.10;
 
-    /** Lista de todos os animais vivos no campo. */
-    private List<Animal> animals;
-    /** Lista temporária para armazenar animais recém-nascidos. */
-    private List<Animal> newAnimals;
-
-    /** Campo atual da simulação. */
+    /** Lista de animais ativos na simulação. */
+    private final ArrayList<Animal> animals;
+    /** Campo da simulação (grade com objetos e terrenos). */
     private Field field;
-    /** Campo auxiliar para construir o próximo estado. */
-    private Field updatedField;
-
-    /** Contador de passos da simulação. */
+    /** Número do passo atual da simulação. */
     private int step;
-
-    /** Interface gráfica que mostra o campo e as populações. */
+    /** Interface gráfica para exibir o estado da simulação. */
     private SimulatorView view;
+    /** Gerador de números aleatórios para inicialização e eventos. */
+    private final Random rand = new Random();
 
     /**
-     * Constrói o simulador com dimensões padrão.
+     * Construtor padrão: cria um simulador com dimensões padrão.
      */
     public Simulator() {
         this(DEFAULT_DEPTH, DEFAULT_WIDTH);
     }
 
     /**
-     * Constrói o simulador com dimensões personalizadas.
-     * 
-     * Se os valores forem inválidos (menores ou iguais a zero),
-     * o simulador usará os valores padrão
-     * 
-     * @param depth profundidade do campo.
-     * @param width largura do campo.
+     * Construtor: cria um simulador com dimensões especificadas.
+     * Se dimensões inválidas forem fornecidas, usa valores padrão.
+     *
+     * @param depth número de linhas do campo.
+     * @param width número de colunas do campo.
      */
     public Simulator(int depth, int width) {
         if (width <= 0 || depth <= 0) {
-            System.out.println("Dimensões inválidas. Usando valores padrão.");
             depth = DEFAULT_DEPTH;
             width = DEFAULT_WIDTH;
         }
-
         animals = new ArrayList<>();
-        newAnimals = new ArrayList<>();
         field = new Field(depth, width);
-        updatedField = new Field(depth, width);
 
-        // Configura a interface gráfica e define cores para cada espécie
+        // Configura a interface gráfica e cores das entidades
         view = new SimulatorView(depth, width);
         view.setColor(Fox.class, Color.blue);
         view.setColor(Rabbit.class, Color.orange);
+        view.setColor(Alecrim.class, Color.green);
+        view.setColor(Salvia.class, Color.magenta);
 
-        // Inicializa o campo com animais
         reset();
     }
 
     /**
-     * Executa a simulação por 500 passos.
-     * Ideal para testes longos ou observação de padrões populacionais.
+     * Executa uma simulação longa (500 passos).
      */
     public void runLongSimulation() {
         simulate(500);
     }
 
     /**
-     * Executa a simulação por um número definido de passos.
-     * 
-     * <p>Se a simulação deixar de ser viável (apenas uma espécie viva),
-     * ela será interrompida antes do fim.</p>
-     * 
+     * Executa a simulação por um número específico de passos.
+     * Interrompe se a simulação deixar de ser viável.
+     *
      * @param numSteps número de passos a executar.
      */
     public void simulate(int numSteps) {
-        for (int step = 1; step <= numSteps && view.isViable(field); step++) {
+        for (int i = 1; i <= numSteps && view.isViable(field); i++) {
             simulateOneStep();
         }
     }
 
     /**
-     * Executa um único passo da simulação.
-     * 
-     * <p>Todos os animais vivos executam sua ação principal
-     * (definida em {@code Animal.act}). Animais mortos são removidos
-     * da lista. Novos animais nascidos são adicionados ao final do passo.</p>
+     * Executa um único passo da simulação:
+     * - Incrementa o contador de passos.
+     * - Cada animal age (move, come, reproduz).
+     * - Remove animais mortos.
+     * - Adiciona novos animais nascidos.
+     * - Atualiza a interface gráfica.
      */
     public void simulateOneStep() {
         step++;
-        newAnimals.clear();
+        List<Animal> newAnimals = new ArrayList<>();
 
         for (Iterator<Animal> iter = animals.iterator(); iter.hasNext();) {
             Animal animal = iter.next();
-            if (animal.isAlive()) {
-                animal.act(field, updatedField, newAnimals);
-            } else {
-                iter.remove(); // remove mortos
+            animal.act(newAnimals);
+            if (!animal.isAlive()) {
+                iter.remove();
             }
         }
 
         animals.addAll(newAnimals);
-
-        // Troca os campos para preparar o próximo passo
-        Field temp = field;
-        field = updatedField;
-        updatedField = temp;
-        updatedField.clear();
-
-        // Atualiza a interface gráfica com o novo estado
         view.showStatus(step, field);
     }
 
     /**
-     * Reseta a simulação para o estado inicial.
-     * 
-     * Limpa os campos e popula com animais novos
+     * Reinicia a simulação:
+     * - Zera o contador de passos.
+     * - Limpa lista de animais e campo.
+     * - Popula o campo com animais e plantas iniciais.
+     * - Atualiza a interface gráfica.
      */
     public void reset() {
         step = 0;
         animals.clear();
         field.clear();
-        updatedField.clear();
         populate(field);
         view.showStatus(step, field);
     }
 
     /**
-     * Popula o campo com raposas e coelhos.
-     * 
-     * Cada célula tem chance independente de receber uma raposa
-     * ou um coelho. Se uma raposa for criada, a célula fica ocupada
-     * e o coelho só será criado se a célula estiver livre
-     * 
-     * Esse método pode ser expandido para incluir outras espécies
-     * como lobos, cobras, águias, caçadores ou plantas
-     * 
+     * Popula o campo inicial com raposas, coelhos e plantas.
+     * Cada célula tem uma probabilidade de receber uma entidade.
+     *
      * @param field campo a ser populado.
      */
     private void populate(Field field) {
-        Random rand = new Random();
         field.clear();
-
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
+                Location location = new Location(row, col);
 
-                // Tenta criar raposa
                 if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
-                    Fox fox = new Fox(true);
-                    animals.add(fox);
-                    fox.setLocation(row, col);
-                    field.place(fox, row, col);
+                    animals.add(new Fox(true, field, location));
                 }
-
-                // Tenta criar coelho, se a célula estiver livre
-                if (field.getObjectAt(row, col) == null &&
-                    rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
-                    Rabbit rabbit = new Rabbit(true);
-                    animals.add(rabbit);
-                    rabbit.setLocation(row, col);
-                    field.place(rabbit, row, col);
+                if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
+                    animals.add(new Rabbit(true, field, location));
                 }
-                // System.out.println("Criando coelho em (" + row + "," + col + ")");
-               
+                if (rand.nextDouble() <= PLANT_CREATION_PROBABILITY) {
+                    if (rand.nextBoolean()) {
+                        field.place(new Alecrim(), location);
+                    } else {
+                        field.place(new Salvia(), location);
+                    }
+                }
             }
-            
         }
-
-        // Embaralha a ordem dos animais para evitar viés de execução
-        Collections.shuffle(animals);
-
-        
     }
 }
