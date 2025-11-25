@@ -1,75 +1,73 @@
 /**
- * Classe que representa uma localização em uma grade retangular
+ * Represent a location in a rectangular grid.
  * 
- * Uma instância de {@code Location} armazena coordenadas de linha e coluna,
- * utilizadas pelas classes {@link Field}, {@link Animal} e outras para definir
- * posições dentro do campo da simulação
- *
- * <p>Inclui métodos para comparação de igualdade, geração de hash code e
- * representação textual
+ * @author David J. Barnes and Michael Kolling
+ * @version 2002-04-09
  */
-public class Location {
-    // Linha da posição na grade
+public class Location
+{
+    // Row and column positions.
     private int row;
-    // Coluna da posição na grade
     private int col;
 
     /**
-     * Cria uma localização com linha e coluna específicas
-     *
-     * @param row linha da posição
-     * @param col coluna da posição
+     * Represent a row and column.
+     * @param row The row.
+     * @param col The column.
      */
-    public Location(int row, int col) {
+    public Location(int row, int col)
+    {
         this.row = row;
         this.col = col;
     }
-
+    
     /**
-     * Verifica se duas localizações são iguais (mesma linha e coluna)
-     *
-     * @param obj objeto a comparar
-     * @return true se for uma {@code Location} com mesma linha e coluna
+     * Implement content equality.
      */
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if(obj instanceof Location) {
             Location other = (Location) obj;
             return row == other.getRow() && col == other.getCol();
-        } else {
+        }
+        else {
             return false;
         }
     }
-
+    
     /**
-     * Retorna uma string no formato "linha,coluna"
-     *
-     * @return representação textual da localização
+     * Return a string of the form row,column
+     * @return A string representation of the location.
      */
-    @Override
-    public String toString() {
+    public String toString()
+    {
         return row + "," + col;
     }
-
+    
     /**
-     * Gera um código hash único para cada par (linha, coluna)
-     * Usa os 16 bits superiores para a linha e os inferiores para a coluna
-     *
-     * @return código hash da localização
+     * Use the top 16 bits for the row value and the bottom for
+     * the column. Except for very big grids, this should give a
+     * unique hash code for each (row, col) pair.
      */
-    @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return (row << 16) + col;
     }
-
-    // @return linha da posição
-    public int getRow() {
+    
+    /**
+     * @return The row.
+     */
+    public int getRow()
+    {
         return row;
     }
-
-    // @return coluna da posição
-    public int getCol() {
+    
+    /**
+     * @return The column.
+     */
+    public int getCol()
+    {
         return col;
     }
-}  
+}
 
