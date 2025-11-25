@@ -3,54 +3,54 @@ import javax.swing.*;
 import java.util.HashMap;
 
 /**
- * Classe responsável pela visualização gráfica do simulador.
- * 
- * {@code SimulatorView} exibe o campo da simulação em uma janela,
- * mostrando cada célula com uma cor correspondente ao conteúdo:
- * animais, plantas ou espaços vazios
+ * Visualização gráfica da grade da simulação.
  *
- * Além disso, apresenta informações sobre o passo atual da simulação
- * e estatísticas populacionais. As cores de cada espécie podem ser
- * configuradas dinamicamente através do método {@link #setColor}
+ * - Mostra cada célula do campo como um retângulo colorido.
+ * - Usa cores diferentes para cada espécie/planta (definidas com setColor).
+ * - Mostra o passo atual e estatísticas populacionais agregadas.
+ * - Também desenha tipos de terreno (rios, montanhas, cavernas, tocas, vegetação, campo aberto).
  *
- * Esta classe utiliza uma classe interna {@code FieldView} para
- * desenhar o campo em forma de grade
+ * Trabalha em conjunto com FieldStats para calcular e exibir populações.
  *
+ * @author David J. Barnes
+ * @author Michael Kolling
+ * @version 2002-04-23 (revisado 2025-11 para visualizar terrenos)
  */
 public class SimulatorView extends JFrame {
-    // Cor usada para células vazias. 
-    private static final Color EMPTY_COLOR = Color.white;
-    // Cor usada para classes sem cor definida
+    /** Cor para células vazias (não utilizada quando desenhamos terreno). */
+    //private static final Color EMPTY_COLOR = Color.white;
+    /** Cor para objetos sem cor definida explicitamente. */
     private static final Color UNKNOWN_COLOR = Color.gray;
 
-    // Prefixo do texto que mostra o passo atual
-    private final String STEP_PREFIX = "Passo: ";
-    // Prefixo do texto que mostra a população
-    private final String POPULATION_PREFIX = "População: ";
+    // Cores padrão para terrenos
+    private static final Color MOUNTAIN_COLOR = Color.darkGray;
+    private static final Color RIVER_COLOR = Color.blue;
+    private static final Color BURROW_COLOR = new Color(139,69,19); // marrom
+    private static final Color CAVE_COLOR = Color.black;
+    private static final Color VEGETATION_COLOR = Color.green;
+    private static final Color PLAIN_COLOR = Color.lightGray;
 
-    // Label que mostra o passo atual
-    private JLabel stepLabel;
-    // Label que mostra estatísticas populacionais
-    private JLabel population;
-    // Componente gráfico que desenha o campo
+    private final String STEP_PREFIX = "Step: ";
+    private final String POPULATION_PREFIX = "Population: ";
+    private JLabel stepLabel, population;
     private FieldView fieldView;
 
-    // Mapa que associa classes de animais às suas cores
-    private HashMap<Class, Color> colors;
-    // Objeto que calcula e armazena estatísticas da simulação
+    /** Mapa de cores por classe (Animal, Plant). */
+    private HashMap<Class<?>, Color> colors;
+    /** Estatísticas populacionais do campo. */
     private FieldStats stats;
 
     /**
-     * Cria uma visualização gráfica para o campo da simulação
+     * Cria a janela de visualização com dimensões específicas.
      *
-     * @param height altura do campo (número de linhas)
-     * @param width largura do campo (número de colunas)
+     * @param height número de linhas da grade.
+     * @param width número de colunas da grade.
      */
     public SimulatorView(int height, int width) {
         stats = new FieldStats();
-        colors = new HashMap<>();
+        colors = new HashMap<Class<?>, Color>();
 
-        setTitle("Simulação Predador-Presa");
+        setTitle("Fox, Rabbit and Ecosystem Simulation");
         stepLabel = new JLabel(STEP_PREFIX, JLabel.CENTER);
         population = new JLabel(POPULATION_PREFIX, JLabel.CENTER);
 
@@ -67,32 +67,41 @@ public class SimulatorView extends JFrame {
     }
 
     /**
-     * Define a cor a ser usada para uma determinada classe de animal.
+     * Define uma cor para uma classe de entidade (animal ou planta).
      *
-     * @param animalClass classe do animal.
-     * @param color cor associada.
+     * @param entityClass classe a ser colorida.
+     * @param color cor para exibir.
      */
-    public void setColor(Class animalClass, Color color) {
-        colors.put(animalClass, color);
+    public void setColor(Class<?> entityClass, Color color) {
+        colors.put(entityClass, color);
     }
 
     /**
-     * Retorna a cor associada a uma classe de animal.
-     * Caso não exista cor definida, retorna {@link #UNKNOWN_COLOR}.
+     * Recupera a cor associada a uma classe. Se não houver, usa cinza.
      *
-     * @param animalClass classe do animal.
-     * @return cor correspondente.
+     * @param entityClass classe desejada.
+     * @return cor mapeada ou UNKNOWN_COLOR.
      */
-    private Color getColor(Class animalClass) {
-        Color col = colors.get(animalClass);
-        return (col == null) ? UNKNOWN_COLOR : col;
+    private Color getColor(Class<?> entityClass) {
+        Color col = colors.get(entityClass);
+        if(col == null) {
+            return UNKNOWN_COLOR;
+        }
+        else {
+            return col;
+        }
     }
 
     /**
-     * Atualiza a interface gráfica com o estado atual do campo.
+     * Exibe o estado atual do campo:
+     * - Atualiza o rótulo com o número do passo.
+     * - Percorre todas as células da grade.
+     * - Desenha objetos com suas cores.
+     * - Se célula estiver vazia, desenha a cor do terreno.
+     * - Atualiza estatísticas populacionais.
      *
-     * @param step número do passo atual da simulação.
-     * @param field campo da simulação.
+     * @param step passo atual da simulação.
+     * @param field campo com objetos e terrenos.
      */
     public void showStatus(int step, Field field) {
         if(!isVisible())
@@ -105,50 +114,77 @@ public class SimulatorView extends JFrame {
 
         for(int row = 0; row < field.getDepth(); row++) {
             for(int col = 0; col < field.getWidth(); col++) {
-                Object animal = field.getObjectAt(row, col);
-                if(animal != null) {
-                    stats.incrementCount(animal.getClass());
-                    fieldView.drawMark(col, row, getColor(animal.getClass()));
-                } else {
-                    fieldView.drawMark(col, row, EMPTY_COLOR);
+                Location loc = new Location(row, col);
+                Object obj = field.getObjectAt(loc);
+
+                if(obj != null) {
+                    stats.incrementCount(obj.getClass());
+                    fieldView.drawMark(col, row, getColor(obj.getClass()));
+                }
+                else {
+                    // Célula vazia: desenha o tipo de terreno
+                    Terreno terrain = field.getTerrainAt(loc);
+                    fieldView.drawMark(col, row, getTerrainColor(terrain));
                 }
             }
         }
-        stats.countFinished();
+
+        // Compatibilidade com versões anteriores (opcional).
+        // Se sua FieldStats não possui countFinished(), remova esta chamada
+        // ou implemente countFinished() como countsValid = true;
+        // stats.countFinished();
 
         population.setText(POPULATION_PREFIX + stats.getPopulationDetails(field));
         fieldView.repaint();
     }
 
     /**
-     * Verifica se a simulação ainda é viável.
-     * 
-     * @param field campo da simulação.
-     * @return true se houver mais de uma espécie viva.
+     * Mapeia o tipo de terreno para sua cor padrão de visualização.
+     *
+     * @param terrain tipo de terreno da célula.
+     * @return cor usada para pintar o terreno.
+     */
+    private Color getTerrainColor(Terreno terrain) {
+        switch(terrain) {
+            case MOUNTAIN: return MOUNTAIN_COLOR;
+            case RIVER: return RIVER_COLOR;
+            case BURROW: return BURROW_COLOR;
+            case CAVE: return CAVE_COLOR;
+            case DENSE_VEGETATION: return VEGETATION_COLOR;
+            case PLAIN:
+            default: return PLAIN_COLOR;
+        }
+    }
+
+    /**
+     * Verifica se a simulação é viável: deve haver mais de uma espécie presente.
+     *
+     * @param field campo atual.
+     * @return true se mais de um contador tiver valores > 0.
      */
     public boolean isViable(Field field) {
         return stats.isViable(field);
     }
 
     /**
-     * Classe interna responsável por desenhar o campo em forma de grade.
-     * Cada célula é representada por um retângulo colorido.
+     * Painel interno responsável por desenhar a grade do campo.
+     * Mantém uma imagem interna para evitar flicker e melhorar performance.
      */
     private class FieldView extends JPanel {
-        /** Fator de escala para o tamanho das células. */
+        /** Fator de escala padrão para cada célula da grade. */
         private final int GRID_VIEW_SCALING_FACTOR = 6;
 
         private int gridWidth, gridHeight;
         private int xScale, yScale;
-        private Dimension size;
+        Dimension size;
         private Graphics g;
         private Image fieldImage;
 
         /**
-         * Cria um novo componente FieldView.
+         * Constrói a visualização da grade com altura e largura especificadas.
          *
-         * @param height altura do campo.
-         * @param width largura do campo.
+         * @param height número de linhas.
+         * @param width número de colunas.
          */
         public FieldView(int height, int width) {
             gridHeight = height;
@@ -156,15 +192,17 @@ public class SimulatorView extends JFrame {
             size = new Dimension(0, 0);
         }
 
-        /** Retorna o tamanho preferido do componente. */
+        /**
+         * Tamanho preferido do painel, com base na escala e tamanho da grade.
+         */
         public Dimension getPreferredSize() {
             return new Dimension(gridWidth * GRID_VIEW_SCALING_FACTOR,
                                  gridHeight * GRID_VIEW_SCALING_FACTOR);
         }
 
         /**
-         * Prepara o componente para uma nova rodada de pintura.
-         * Recalcula os fatores de escala caso o tamanho da janela tenha mudado
+         * Prepara a pintura, reconstruindo a imagem interna se o painel foi
+         * redimensionado e recalculando a escala de desenho.
          */
         public void preparePaint() {
             if(! size.equals(getSize())) {
@@ -173,19 +211,22 @@ public class SimulatorView extends JFrame {
                 g = fieldImage.getGraphics();
 
                 xScale = size.width / gridWidth;
-                if(xScale < 1) xScale = GRID_VIEW_SCALING_FACTOR;
-
+                if(xScale < 1) {
+                    xScale = GRID_VIEW_SCALING_FACTOR;
+                }
                 yScale = size.height / gridHeight;
-                if(yScale < 1) yScale = GRID_VIEW_SCALING_FACTOR;
+                if(yScale < 1) {
+                    yScale = GRID_VIEW_SCALING_FACTOR;
+                }
             }
         }
 
         /**
-         * Desenha uma célula do campo em uma cor específica
+         * Desenha um retângulo representando uma célula da grade na cor fornecida.
          *
-         * @param x coordenada horizontal.
-         * @param y coordenada vertical
-         * @param color cor da célula
+         * @param x coluna da célula.
+         * @param y linha da célula.
+         * @param color cor a ser usada na pintura.
          */
         public void drawMark(int x, int y, Color color) {
             g.setColor(color);
@@ -193,7 +234,7 @@ public class SimulatorView extends JFrame {
         }
 
         /**
-         * Redesenha o componente copiando a imagem interna para a tela
+         * Renderiza a imagem interna no painel (double-buffering).
          */
         public void paintComponent(Graphics g) {
             if(fieldImage != null) {
