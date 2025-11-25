@@ -1,18 +1,9 @@
-## Getting Started
-
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
-
-## Folder Structure
-
-The workspace contains two folders by default, where:
-
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+- Criei as classes de plantas (Planta, Alecrim, Sálvia)
+- Os coelhos agora comem plantas e recuperam energia
+- Adicionei tipos de terreno ( PLAIN,BURROW,CAVE,MOUNTAIN,RIVER,DENSE_VEGETATION)
+- Coelhos e raposas têm restrições de movimento dependendo do terreno
+- Terrenos funcionam como barreiras ou habitats
+- Cada espécie tem regras próprias de movimento:
+          Coelhos → só entram em locais seguros (campo aberto, vegetação, tocas)
+          Raposas → caçam em quase todos os terrenos, mas não atravessam rios ou montanhas
+- A interface gráfica mostra animais, plantas e terrenos com cores diferentes
