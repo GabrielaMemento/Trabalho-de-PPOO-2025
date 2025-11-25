@@ -1,76 +1,146 @@
+import java.util.List;
 import java.util.Random;
 
 /**
- * Classe abstrata que representa um animal genérico.
- * Cada animal possui idade, estado de vida e localização.
- *  As Subclasses devem definir seus  limites de idade,
- * reprodução e comportamento.
- * 
+ * Classe base abstrata para todos os animais da simulação.
+ *
+ * Responsabilidades:
+ * - Manter estado comum dos animais (idade, se está vivo, localização, nível de comida, campo).
+ * - Oferecer operações básicas sobre ciclo de vida (morrer, mover-se).
+ * - Definir a interface (métodos abstratos) que cada espécie concreta deve implementar.
+ *
+ * Contratos que as subclasses devem cumprir:
+ * - {@link #act(List)}: executar as ações do animal em um passo (mover, comer, reproduzir, etc.).
+ * - {@link #incrementAge()}: envelhecer e verificar morte por velhice.
+ * - {@link #breed()}: quantidade de filhotes gerados no passo (0 se não reproduziu).
+ * - {@link #canBreed()}: regra de aptidão para reprodução (por idade, energia, estação, etc.).
+ *
+ * Convenções importantes:
+ * - O campo armazena um único objeto por célula.
+ * - Sempre que o animal muda de célula, a célula anterior é liberada e a nova célula recebe o animal.
+ * - Ao morrer, o animal remove-se do campo (libera a célula), e sua localização/campo são anulados.
+ *
+ * Observação:
+ * - Esta classe não define lógica específica de espécie (como dieta ou terreno permitido).
+ *   Isso deve ser implementado nas subclasses (e.g., Rabbit, Fox).
+ *
+ * @author Base: Barnes & Kolling
+ * @version 2002-04-23 (comentado e revisado 2025-11)
  */
 public abstract class Animal {
+    /** Idade atual do animal (em passos de simulação). */
     public int age;
+    /** Indica se o animal está vivo. Quando false, não deve mais agir ou aparecer no campo. */
     public boolean alive;
+    /** Localização atual do animal no campo (linha, coluna). */
     public Location location;
-    public int foodLevel; // usado apenas por predadores
+    /** Nível de comida/energia. Semântica definida pela espécie (pode morrer se chegar a zero). */
+    public int foodLevel;
+    /** Referência ao campo (grade) onde o animal está inserido. */
+    public Field field;
+    /** Gerador de números aleatórios disponível para subclasses. */
     public static final Random rand = new Random();
 
-    public Animal() {
+    /**
+     * Construtor padrão para um animal.
+     * Inicializa como vivo, com idade zero, e posiciona no campo.
+     *
+     * @param field campo da simulação onde o animal será colocado.
+     * @param location posição inicial do animal.
+     */
+    public Animal(Field field, Location location) {
         this.age = 0;
         this.alive = true;
-        this.location = null;
+        this.field = field;
+        setLocation(location);
     }
 
-    // Cada animal deve implementar sua ação principal (caçar, correr, reproduzir)
-    public abstract void act(Field field, Field updatedField, java.util.List<Animal> newAnimals);
+    /**
+     * Executa as ações do animal em um passo da simulação.
+     * As ações típicas incluem: envelhecer, movimentar-se, alimentar-se, reproduzir, etc.
+     *
+     * @param newAnimals lista onde novos animais nascidos devem ser adicionados.
+     */
+    public abstract void act(List<Animal> newAnimals);
 
-    // Cada animal define como envelhece
+    /**
+     * Incrementa a idade do animal e processa efeitos de velhice
+     * (e.g., morrer se ultrapassar a idade máxima da espécie).
+     */
     public abstract void incrementAge();
 
-    // Cada animal define como se reproduz
+    /**
+     * Calcula quantos filhotes serão gerados neste passo.
+     * Deve respeitar regras de reprodução da espécie (probabilidade, estação, energia).
+     *
+     * @return número de novos filhotes (0 se não reproduziu).
+     */
     public abstract int breed();
 
-    // Cada animal define se pode reproduzir
+    /**
+     * Indica se o animal está apto a reproduzir neste momento.
+     * Normalmente baseado na idade mínima, mas pode incluir outras regras.
+     *
+     * @return true se apto a reproduzir; false caso contrário.
+     */
     public abstract boolean canBreed();
 
-    public boolean isAlive() {
-        return alive;
-    }
+    /**
+     * @return true se o animal ainda está vivo; false se já morreu.
+     */
+    public boolean isAlive() { return alive; }
 
+    /**
+     * Define o animal como morto, removendo-o do campo e limpando suas referências.
+     * Efeitos colaterais:
+     * - Libera a célula atual no campo (se havia localização válida).
+     * - Anula referências a location e field, prevenindo uso posterior indevido.
+     */
     public void setDead() {
         alive = false;
+        // Se o animal estava posicionado no campo, remover da célula atual.
+        if (location != null && field != null) {
+            field.clear(location);
+        }
+        // Zera as referências para evitar que a lógica subsequente use um animal "fantasma".
+        location = null;
+        field = null;
     }
 
-    public Location getLocation() {
-        return location;
+    /**
+     * @return a localização atual do animal no campo (pode ser null se morto).
+     */
+    public Location getLocation() { return location; }
+
+    /**
+     * Move o animal para uma nova localização no campo.
+     * Efeitos colaterais:
+     * - Libera a célula anterior (se houver).
+     * - Ocupa a nova célula com este animal.
+     *
+     * Pré-condições:
+     * - newLocation deve ser uma célula válida dentro dos limites do campo.
+     * - A regra de terreno permitido (se existir) deve ser verificada pela subclasse antes de chamar este método.
+     *
+     * @param newLocation nova posição desejada.
+     */
+    public void setLocation(Location newLocation) {
+        // Remove o animal da célula anterior, se estava colocado.
+        if (location != null && field != null) {
+            field.clear(location);
+        }
+        // Atualiza a referência de localização.
+        location = newLocation;
+        // Coloca este animal na nova célula, se houver campo e localização válidos.
+        if (field != null && location != null) {
+            field.place(this, location);
+        }
     }
 
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
-    public void setLocation(int row, int col) {
-        this.location = new Location(row, col);
+    /**
+     * @return o campo ao qual este animal pertence (pode ser null se morto).
+     */
+    public Field getField() {
+         return field;
     }
 }
-
-    
-
-    /*
-    * Uso de static em atributos que deveriam ser de instância  
-            - age, alive, foodLevel não deveriam ser static
-            - Se forem static, todos os animais compartilham a mesma idade e estado de vida, 
-            o que não faz sentido. Cada animal precisa ter seus próprios valores.
-    * Contantes genéricas na classe abstrata
-            - BREEDING_AGE, MAX_AGE, BREEDING_PROBABILITY, MAX_LITTER_SIZE não podem ser 
-            fixos, pois cada espécie tem valores diferentes
-            Solução: deixar esses valores definidos nas subclasses
-    * Métodos concretos que deveriam ser 
-            -  incrementAge(), breed() e incrementHunger() têm lógica que depende da 
-            melhor declarar como abstratos ou fornecer uma implementação genérica e permitir que as 
-            subclasses sobrescrevam
-    * Construtor zerando tudo
-            - Melhor: inicializar apenas os atributos comuns (age = 0, alive = true) 
-            e deixar as subclasses configurarem seus próprios limites
-
-
-    */
