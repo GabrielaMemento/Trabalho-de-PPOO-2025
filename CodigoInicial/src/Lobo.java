@@ -30,7 +30,7 @@ public class Lobo extends Animal {
     private static final Random RAND = new Random();
 
     /**
-     * Construtor compatível (3 parâmetros)
+     * Construtor compatível
      */
     public Lobo(boolean randomAge, Field field, Location location) {
         this(randomAge, field, location, null);
