@@ -2,7 +2,7 @@
  * Classe abstrata para plantas no campo.
  * Subclasses específicas (Alecrim, Sálvia) definem seus efeitos.
  */
-public abstract class Planta {
+public abstract class Planta implements Comestivel {
     private boolean taVivo;
 
     public Planta() {
@@ -22,6 +22,22 @@ public abstract class Planta {
 
     /** Nome da planta (para estatísticas e visualização). */
     public abstract String getName();
- 
+
+  // Implementação da interface Comestivel (@autor Leonardo Elias Rodrigues)
+    @Override
+    public int getValorNutricional() {
+        return getValorAlimento();
+    }
     
+    @Override
+    public boolean podeSerComido() {
+        return isAlive();
+    }
+    
+    @Override
+    public void foiComido() {
+        setDead();
+    }
 }
+    
+

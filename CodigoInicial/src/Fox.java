@@ -38,14 +38,18 @@ public class Fox extends Animal {
      * @param field campo da simulação.
      * @param location localização inicial.
      */
-    public Fox(boolean randomAge, Field field, Location location) {
-        super(field, location);
+    /**
+ * Construtor atualizado.
+ */
+    public Fox(boolean randomAge, Field field, Location location, ControladorClima controladorClima) {
+        super(field, location, controladorClima);
         foodLevel = RABBIT_FOOD_VALUE;
         if (randomAge) {
             this.age = RAND.nextInt(MAX_AGE);
             this.foodLevel = RAND.nextInt(RABBIT_FOOD_VALUE) + 1;
         }
     }
+    
 
     /**
      * Executa as ações da raposa em um passo de simulação:
@@ -101,7 +105,12 @@ public class Fox extends Animal {
      */
     @Override
     public int breed() {
-        if (canBreed() && RAND.nextDouble() <= BREEDING_PROBABILITY) {
+        double probabilidadeBase = BREEDING_PROBABILITY;
+        if (controladorClima != null) {
+            probabilidadeBase *= controladorClima.getMultiplicadorReproducao();
+        }
+        
+        if (canBreed() && RAND.nextDouble() <= probabilidadeBase) {
             return RAND.nextInt(MAX_LITTER_SIZE) + 1;
         }
         return 0;
@@ -151,12 +160,20 @@ public class Fox extends Animal {
      *
      * @param newAnimals lista onde novas raposas são adicionadas.
      */
-    private void giveBirth(List<Animal> newAnimals) {
+    private void giveBirth(List<Animal> newAnimals) { //@author Leonardo Elias Rodrigues tibe att
         List<Location> free = field.getFreeAdjacent(location);
         int births = breed();
         for (int b = 0; b < births && !free.isEmpty(); b++) {
             Location loc = free.remove(0);
-            newAnimals.add(new Fox(false, field, loc));
+            // USAR O CONSTRUTOR CORRETO COM ControladorClima
+            newAnimals.add(new Fox(false, field, loc, this.controladorClima));
         }
     }
+
+    // Implementação da interface Movel
+@Override
+    public boolean podeMoverPara(Terreno terreno) {
+    // Raposas não podem atravessar montanhas ou rios
+        return terreno != Terreno.MOUNTAIN && terreno != Terreno.RIVER;
+}
 }

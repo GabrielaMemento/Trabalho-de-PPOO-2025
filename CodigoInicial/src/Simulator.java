@@ -41,6 +41,9 @@ public class Simulator {
     private static final double RABBIT_CREATION_PROBABILITY = 0.08;
     /** Probabilidade de criação inicial de plantas em cada célula. */
     private static final double PLANT_CREATION_PROBABILITY = 0.10;
+      /** Probabilidade de criação inicial de lobos em cada célula. */
+    private static final double WOLF_CREATION_PROBABILITY = 0.015; // ← @autor Leonardo Elias Rodrigues
+
 
     /** Lista de animais ativos na simulação. */
     private final ArrayList<Animal> animals;
@@ -52,6 +55,7 @@ public class Simulator {
     private SimulatorView view;
     /** Gerador de números aleatórios para inicialização e eventos. */
     private final Random rand = new Random();
+    private ControladorClima controladorClima;
 
     /**
      * Construtor padrão: cria um simulador com dimensões padrão.
@@ -74,16 +78,19 @@ public class Simulator {
         }
         animals = new ArrayList<>();
         field = new Field(depth, width);
+        controladorClima = new ControladorClima();
+// ← NOVO @autor Leonardo Elias Rodrigues
 
-        // Configura a interface gráfica e cores das entidades
-        view = new SimulatorView(depth, width);
-        view.setColor(Fox.class, Color.blue);
-        view.setColor(Rabbit.class, Color.orange);
-        view.setColor(Alecrim.class, Color.green);
-        view.setColor(Salvia.class, Color.magenta);
+    // Configura a interface gráfica...
+    view = new SimulatorView(depth, width);
+    view.setColor(Fox.class, Color.blue);
+    view.setColor(Rabbit.class, Color.orange);
+    view.setColor(Alecrim.class, Color.green);
+    view.setColor(Salvia.class, Color.magenta);
+    view.setColor(Lobo.class, Color.red);
+    reset();
+}
 
-        reset();
-    }
 
     /**
      * Executa uma simulação longa (500 passos).
@@ -113,20 +120,22 @@ public class Simulator {
      * - Atualiza a interface gráfica.
      */
     public void simulateOneStep() {
-        step++;
-        List<Animal> newAnimals = new ArrayList<>();
+    step++;
+    controladorClima.atualizar(); // ← NOVO: atualiza clima a cada passo
+    
+    List<Animal> newAnimals = new ArrayList<>();
 
-        for (Iterator<Animal> iter = animals.iterator(); iter.hasNext();) {
-            Animal animal = iter.next();
-            animal.act(newAnimals);
-            if (!animal.isAlive()) {
-                iter.remove();
-            }
+    for (Iterator<Animal> iter = animals.iterator(); iter.hasNext();) {
+        Animal animal = iter.next();
+        animal.act(newAnimals);
+        if (!animal.isAlive()) {
+            iter.remove();
         }
-
-        animals.addAll(newAnimals);
-        view.showStatus(step, field);
     }
+
+    animals.addAll(newAnimals);
+    view.showStatus(step, field);
+}
 
     /**
      * Reinicia a simulação:
@@ -156,10 +165,13 @@ public class Simulator {
                 Location location = new Location(row, col);
 
                 if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
-                    animals.add(new Fox(true, field, location));
+                    animals.add(new Fox(true, field, location, controladorClima));
                 }
                 if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
-                    animals.add(new Rabbit(true, field, location));
+                    animals.add(new Rabbit(true, field, location, controladorClima));
+                }
+                if (rand.nextDouble() <= WOLF_CREATION_PROBABILITY) { // ← ADICIONAR
+                    animals.add(new Lobo(true, field, location, controladorClima));
                 }
                 if (rand.nextDouble() <= PLANT_CREATION_PROBABILITY) {
                     if (rand.nextBoolean()) {
@@ -171,4 +183,5 @@ public class Simulator {
             }
         }
     }
+
 }

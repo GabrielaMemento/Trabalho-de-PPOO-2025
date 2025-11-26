@@ -33,13 +33,7 @@ public class Rabbit extends Animal {
      * @param field campo da simulação.
      * @param location localização inicial.
      */
-    public Rabbit(boolean randomAge, Field field, Location location) {
-        super(field, location);
-        if (randomAge) {
-            this.age = RAND.nextInt(MAX_AGE);
-        }
-        this.foodLevel = 5; // energia inicial
-    }
+    
 
     /**
      * Executa as ações do coelho em um passo de simulação:
@@ -51,78 +45,83 @@ public class Rabbit extends Animal {
      *
      * @param newAnimals lista onde novos animais nascidos são adicionados.
      */
+    public Rabbit(boolean randomAge, Field field, Location location, ControladorClima controladorClima) {
+        super(field, location, controladorClima); // ← PASSAR controladorClima para super
+        if (randomAge) {
+            this.age = RAND.nextInt(MAX_AGE);
+        }
+        this.foodLevel = 5;
+    }
+    /**
+     * Ações do coelho considerando efeitos do clima atualizado.@author Leonardo Elias Rodrigues
+     */
     @Override
     public void act(List<Animal> newAnimals) {
         incrementAge();
         if (!isAlive()) return;
 
-        // Consome planta se houver na célula atual
-        Object obj = field.getObjectAt(location);
-        if (obj instanceof Planta) {
-            Planta plant = (Planta) obj;
-            if (plant.isAlive()) {
-                plant.setDead();
-                foodLevel = plant.getValorAlimento(); // recupera energia de acordo com a planta
+        // Consome planta (com efeito do clima na disponibilidade)
+        if (RAND.nextDouble() < controladorClima.getMultiplicadorComida()) {
+            Object obj = field.getObjectAt(location);
+            if (obj instanceof Planta) {
+                Planta plant = (Planta) obj;
+                if (plant.podeSerComido()) {
+                    plant.foiComido();
+                    foodLevel += plant.getValorNutricional();
+                }
             }
         }
 
-        // Reprodução
+        // Reprodução com efeito do clima
         giveBirth(newAnimals);
 
-        // Movimento restrito por terreno
-        Location next = field.freeAdjacentLocation(location);
+        // Movimento usando a interface Movel
+        Location next = encontrarProximaLocalizacao();
         if (next != null) {
-            Terreno terrain = field.getTerrainAt(next);
-            if (terrain == Terreno.BURROW || terrain == Terreno.PLAIN || terrain == Terreno.DENSE_VEGETATION) {
-                setLocation(next);
-            }
+            setLocation(next);
         } else {
             // Sem espaço livre: morre por superlotação
             setDead();
         }
     }
 
-    /**
-     * Incrementa a idade e verifica se excedeu o limite.
-     */
+    // Implementação do método abstrato da interface Movel
+    @Override
+    public boolean podeMoverPara(Terreno terreno) {
+        // Coelhos podem se mover em tocas, campos abertos e vegetação densa
+        return  terreno == Terreno.BURROW ||
+                terreno == Terreno.PLAIN ||
+                terreno == Terreno.DENSE_VEGETATION;
+    }
+
+    // Mantidos da versão anterior (com ajustes para clima)
     @Override
     public void incrementAge() {
         age++;
         if (age > MAX_AGE) setDead();
     }
 
-    /**
-     * Retorna o número de filhotes gerados neste passo (se ocorrer reprodução).
-     *
-     * @return número de nascimentos (0 se não reproduziu).
-     */
     @Override
     public int breed() {
-        if (canBreed() && RAND.nextDouble() <= BREEDING_PROBABILITY) {
+        double probabilidadeComClima = BREEDING_PROBABILITY * controladorClima.getMultiplicadorReproducao();
+        if (canBreed() && RAND.nextDouble() <= probabilidadeComClima) {
             return RAND.nextInt(MAX_LITTER_SIZE) + 1;
         }
         return 0;
     }
 
-    /**
-     * Verifica se o coelho tem idade suficiente para reproduzir.
-     *
-     * @return true se idade >= BREEDING_AGE.
-     */
     @Override
-    public boolean canBreed() { return age >= BREEDING_AGE; }
+    public boolean canBreed() {
+        return age >= BREEDING_AGE;
+    }
 
-    /**
-     * Processa o nascimento de novos coelhos, alocando-os em células adjacentes livres.
-     *
-     * @param newAnimals lista onde novos coelhos são adicionados.
-     */
     private void giveBirth(List<Animal> newAnimals) {
         List<Location> free = field.getFreeAdjacent(location);
         int births = breed();
         for (int b = 0; b < births && !free.isEmpty(); b++) {
             Location loc = free.remove(0);
-            newAnimals.add(new Rabbit(false, field, loc));
+            // USAR O CONSTRUTOR CORRETO COM ControladorClima
+            newAnimals.add(new Rabbit(false, field, loc, this.controladorClima));
         }
     }
 }

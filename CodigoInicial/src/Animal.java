@@ -27,7 +27,8 @@ import java.util.Random;
  * @author Base: Barnes & Kolling
  * @version 2002-04-23 (comentado e revisado 2025-11)
  */
-public abstract class Animal {
+
+public abstract class Animal implements Movel {
     /** Idade atual do animal (em passos de simulação). */
     public int age;
     /** Indica se o animal está vivo. Quando false, não deve mais agir ou aparecer no campo. */
@@ -48,10 +49,16 @@ public abstract class Animal {
      * @param field campo da simulação onde o animal será colocado.
      * @param location posição inicial do animal.
      */
-    public Animal(Field field, Location location) {
+    /**
+     * 
+     * Construtor atualizado para receber controlador de clima.
+     */
+    protected ControladorClima controladorClima; 
+    public Animal(Field field, Location location, ControladorClima controladorClima) {
         this.age = 0;
         this.alive = true;
         this.field = field;
+        this.controladorClima = controladorClima;
         setLocation(location);
     }
 
@@ -143,4 +150,34 @@ public abstract class Animal {
     public Field getField() {
         return field;
     }
+     // Implementação da interface Movel
+    /**
+     * Encontra uma localização adjacente válida considerando
+     * restrições de terreno e clima.
+     */
+    @Override
+    public Location encontrarProximaLocalizacao() {
+        List<Location> adjacentes = field.adjacentLocations(location);
+        
+        for (Location adjacente : adjacentes) {
+            // Verifica se a célula está vazia
+            if (field.getObjectAt(adjacente) == null) {
+                // Verifica se pode mover para este tipo de terreno
+                Terreno terreno = field.getTerrainAt(adjacente);
+                if (podeMoverPara(terreno)) {
+                    // Aplica efeito do clima no movimento (chance de não se mover)
+                    if (rand.nextDouble() < controladorClima.getMultiplicadorMovimento()) {
+                        return adjacente;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Método abstrato para definir regras de movimento por terreno.
+     * Cada subclasse deve implementar suas próprias restrições.
+     */
+    public abstract boolean podeMoverPara(Terreno terreno);
 }
