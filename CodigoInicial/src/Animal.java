@@ -1,5 +1,4 @@
 import java.util.List;
-import java.util.Random;
 
 /**
  * Classe base abstrata para todos os animais da simulação.
@@ -29,17 +28,17 @@ import java.util.Random;
  */
 public abstract class Animal {
     /** Idade atual do animal (em passos de simulação). */
-    public int age;
+    private int age;
     /** Indica se o animal está vivo. Quando false, não deve mais agir ou aparecer no campo. */
-    public boolean alive;
+    private boolean alive;
     /** Localização atual do animal no campo (linha, coluna). */
-    public Location location;
+    private Location location;
     /** Nível de comida/energia. Semântica definida pela espécie (pode morrer se chegar a zero). */
-    public int foodLevel;
+    private int foodLevel;
     /** Referência ao campo (grade) onde o animal está inserido. */
-    public Field field;
+    private Field field;
     /** Gerador de números aleatórios disponível para subclasses. */
-    public static final Random rand = new Random();
+    //private static final Random rand = new Random();
 
     /**
      * Construtor padrão para um animal.
@@ -52,7 +51,9 @@ public abstract class Animal {
         this.age = 0;
         this.alive = true;
         this.field = field;
-        setLocation(location);
+        this.foodLevel = 0;
+        //errado
+        setLocation(location);    
     }
 
     /**
@@ -85,10 +86,14 @@ public abstract class Animal {
      */
     public abstract boolean canBreed();
 
+
     /**
-     * @return true se o animal ainda está vivo; false se já morreu.
+     * Consome um item de comida, aumentando o nível de comida/energia do animal.
+     * A lógica específica (quanto aumenta, que tipos de comida são válidos) é definida na subclasse.
+     *
+     * @param foodItem objeto representando o alimento consumido.
      */
-    public boolean isAlive() { return alive; }
+    //public abstract void consumeFood(Object foodItem);
 
     /**
      * Define o animal como morto, removendo-o do campo e limpando suas referências.
@@ -106,11 +111,6 @@ public abstract class Animal {
         location = null;
         field = null;
     }
-
-    /**
-     * @return a localização atual do animal no campo (pode ser null se morto).
-     */
-    public Location getLocation() { return location; }
 
     /**
      * Move o animal para uma nova localização no campo.
@@ -135,6 +135,11 @@ public abstract class Animal {
         if (field != null && location != null) {
             field.place(this, location);
         }
+    }/**
+     * @return true se o animal ainda está vivo, false se já morreu.
+     */
+    public boolean isAlive() {
+         return alive; 
     }
 
     /**
@@ -143,4 +148,39 @@ public abstract class Animal {
     public Field getField() {
         return field;
     }
+
+      /**
+     * @return a localização atual do animal no campo (pode ser null se morto).
+     */
+    public Location getLocation() { 
+        return location; 
+    }
+
+    /**
+     * @return o nível atual de comida/energia do animal.
+     */
+    public int getFoodLevel() {
+        return foodLevel;                         
+    }
+     /**
+     * @param foodLevel altera nivel de comida/energia do animal.
+     */
+    public void setFoodLevel(int foodLevel) {
+       this. foodLevel =foodLevel;                         
+    }
+    /**
+     * @return idade do animal. 
+     */
+
+    public int getAge() {
+        return age;
+    }
+    /**
+     * @param age altera idade do animal. 
+     */
+
+    public void  setAge(int age) {
+        this.age = age;
+    }
+
 }

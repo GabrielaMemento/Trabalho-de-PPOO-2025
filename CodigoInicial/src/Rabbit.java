@@ -36,9 +36,9 @@ public class Rabbit extends Animal {
     public Rabbit(boolean randomAge, Field field, Location location) {
         super(field, location);
         if (randomAge) {
-            this.age = RAND.nextInt(MAX_AGE);
+            setAge(RAND.nextInt(MAX_AGE)); 
         }
-        this.foodLevel = 5; // energia inicial
+        setFoodLevel(5);//inicial 
     }
 
     /**
@@ -57,12 +57,12 @@ public class Rabbit extends Animal {
         if (!isAlive()) return;
 
         // Consome planta se houver na célula atual
-        Object obj = field.getObjectAt(location);
+        Object obj = getField().getObjectAt(getLocation());
         if (obj instanceof Planta) {
             Planta plant = (Planta) obj;
             if (plant.isAlive()) {
                 plant.setDead();
-                foodLevel = plant.getValorAlimento(); // recupera energia de acordo com a planta
+                setFoodLevel(plant.getValorAlimento());
             }
         }
 
@@ -70,9 +70,9 @@ public class Rabbit extends Animal {
         giveBirth(newAnimals);
 
         // Movimento restrito por terreno
-        Location next = field.freeAdjacentLocation(location);
+        Location next = getField().freeAdjacentLocation(getLocation());
         if (next != null) {
-            Terreno terrain = field.getTerrainAt(next);
+            Terreno terrain = getField().getTerrainAt(next);
             if (terrain == Terreno.BURROW || terrain == Terreno.PLAIN || terrain == Terreno.DENSE_VEGETATION) {
                 setLocation(next);
             }
@@ -87,8 +87,8 @@ public class Rabbit extends Animal {
      */
     @Override
     public void incrementAge() {
-        age++;
-        if (age > MAX_AGE) setDead();
+        setAge(getAge()+1);
+        if (getAge() > MAX_AGE) setDead();
     }
 
     /**
@@ -110,7 +110,7 @@ public class Rabbit extends Animal {
      * @return true se idade >= BREEDING_AGE.
      */
     @Override
-    public boolean canBreed() { return age >= BREEDING_AGE; }
+    public boolean canBreed() { return getAge() >= BREEDING_AGE; }
 
     /**
      * Processa o nascimento de novos coelhos, alocando-os em células adjacentes livres.
@@ -118,11 +118,11 @@ public class Rabbit extends Animal {
      * @param newAnimals lista onde novos coelhos são adicionados.
      */
     private void giveBirth(List<Animal> newAnimals) {
-        List<Location> free = field.getFreeAdjacent(location);
+        List<Location> free = getField().getFreeAdjacent(getLocation());
         int births = breed();
         for (int b = 0; b < births && !free.isEmpty(); b++) {
             Location loc = free.remove(0);
-            newAnimals.add(new Rabbit(false, field, loc));
+            newAnimals.add(new Rabbit(false, getField(), loc));
         }
     }
 }
