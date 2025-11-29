@@ -32,7 +32,7 @@ public class Fox extends Animal {
 
     /**
      * Constrói uma raposa, possivelmente dando-lhe uma idade aleatória e níveis
-     * de fome iniciais aleatórios para diversidade.
+     * de fome iniciais aleatórias para diversidade.
      *
      * @param randomAge se true, inicializa com idade e fome aleatórias.
      * @param field campo da simulação.
@@ -40,10 +40,10 @@ public class Fox extends Animal {
      */
     public Fox(boolean randomAge, Field field, Location location) {
         super(field, location);
-        foodLevel = RABBIT_FOOD_VALUE;
+        setFoodLevel(RABBIT_FOOD_VALUE);
         if (randomAge) {
-            this.age = RAND.nextInt(MAX_AGE);
-            this.foodLevel = RAND.nextInt(RABBIT_FOOD_VALUE) + 1;
+            setAge(RAND.nextInt(MAX_AGE));
+            setFoodLevel(RAND.nextInt(RABBIT_FOOD_VALUE) + 1);
         }
     }
 
@@ -70,12 +70,12 @@ public class Fox extends Animal {
         Location newLocation = findFood();
         if (newLocation == null) {
             // Caso não encontre comida, tenta mover para um espaço livre
-            newLocation = field.freeAdjacentLocation(location);
+            newLocation = getField().freeAdjacentLocation(getLocation());
         }
 
         // Movimento respeitando restrições de terreno
         if (newLocation != null) {
-            Terreno terrain = field.getTerrainAt(newLocation);
+            Terreno terrain = getField().getTerrainAt(newLocation);
             if (terrain != Terreno.MOUNTAIN && terrain != Terreno.RIVER) {
                 setLocation(newLocation);
             }
@@ -90,8 +90,8 @@ public class Fox extends Animal {
      */
     @Override
     public void incrementAge() {
-        age++;
-        if (age > MAX_AGE) setDead();
+        setAge(getAge() + 1);
+        if (getAge() > MAX_AGE) setDead();
     }
 
     /**
@@ -113,14 +113,14 @@ public class Fox extends Animal {
      * @return true se idade >= BREEDING_AGE.
      */
     @Override
-    public boolean canBreed() { return age >= BREEDING_AGE; }
+    public boolean canBreed() { return getAge() >= BREEDING_AGE; }
 
     /**
      * Incrementa a fome; se chegar a zero, a raposa morre de inanição.
      */
     private void incrementHunger() {
-        foodLevel--;
-        if (foodLevel <= 0) setDead();
+        setFoodLevel(getFoodLevel() - 1);
+        if (getFoodLevel() <= 0) setDead();
     }
 
     /**
@@ -130,15 +130,15 @@ public class Fox extends Animal {
      * @return localização da comida encontrada ou null se não houver.
      */
     private Location findFood() {
-        Iterator<Location> adjacent = field.adjacentLocations(location).iterator();
+        Iterator<Location> adjacent = getField().adjacentLocations(getLocation()).iterator();
         while (adjacent.hasNext()) {
             Location where = adjacent.next();
-            Object obj = field.getObjectAt(where);
+            Object obj = getField().getObjectAt(where);
             if (obj instanceof Rabbit) {
                 Rabbit rabbit = (Rabbit) obj;
                 if (rabbit.isAlive()) {
                     rabbit.setDead();
-                    foodLevel = RABBIT_FOOD_VALUE;
+                    setFoodLevel(RABBIT_FOOD_VALUE);
                     return where;
                 }
             }
@@ -152,11 +152,11 @@ public class Fox extends Animal {
      * @param newAnimals lista onde novas raposas são adicionadas.
      */
     private void giveBirth(List<Animal> newAnimals) {
-        List<Location> free = field.getFreeAdjacent(location);
+        List<Location> free = getField().getFreeAdjacent(getLocation());
         int births = breed();
         for (int b = 0; b < births && !free.isEmpty(); b++) {
             Location loc = free.remove(0);
-            newAnimals.add(new Fox(false, field, loc));
+            newAnimals.add(new Fox(false, getField(), loc));
         }
     }
 }
