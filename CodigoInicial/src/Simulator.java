@@ -41,6 +41,14 @@ public class Simulator {
     private static final double RABBIT_CREATION_PROBABILITY = 0.08;
     /** Probabilidade de criação inicial de plantas em cada célula. */
     private static final double PLANT_CREATION_PROBABILITY = 0.10;
+    /** Probabilidade de criação inicial de lobos em cada célula. */
+    private static final double WOLF_CREATION_PROBABILITY = 0.06;
+    /** Probabilidade de criação inicial de águias em cada célula. */
+    private static final double EAGLE_CREATION_PROBABILITY = 0.012;
+    /** Probabilidade de criação inicial de caçadores em cada célula. */
+    private static final double HUNTER_CREATION_PROBABILITY = 0.012;
+    
+
 
     /** Lista de animais ativos na simulação. */
     private final ArrayList<Animal> animals;
@@ -77,10 +85,14 @@ public class Simulator {
 
         // Configura a interface gráfica e cores das entidades
         view = new SimulatorView(depth, width);
-        view.setColor(Fox.class, Color.blue);
-        view.setColor(Rabbit.class, Color.orange);
-        view.setColor(Alecrim.class, Color.green);
-        view.setColor(Salvia.class, Color.magenta);
+        view.setColor(Fox.class, Color.orange);
+        view.setColor(Rabbit.class, Color.lightGray);
+        view.setColor(Lobo.class, Color.darkGray);
+        view.setColor(Aguia.class, Color.yellow);
+        view.setColor(Cobra.class, Color.black);
+        view.setColor(Cacador.class, Color.cyan);
+        view.setColor(Planta.ALECRIM.getClass(), Color.green);
+        view.setColor(Planta.SALVIA.getClass(), Color.green);
 
         reset();
     }
@@ -161,12 +173,28 @@ public class Simulator {
                 if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
                     animals.add(new Rabbit(true, field, location));
                 }
+                if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
+                    animals.add(new Rabbit(true, field, location));
+                }
+                if (rand.nextDouble() <= WOLF_CREATION_PROBABILITY) {
+                    animals.add(new Lobo(true, field, location));
+                }
+                if (rand.nextDouble() <= EAGLE_CREATION_PROBABILITY) {
+                    animals.add(new Aguia(true, field, location));
+                }
+                if (rand.nextDouble() <= HUNTER_CREATION_PROBABILITY) {
+                    animals.add(new Cacador(true, field, location));
+                }
+                
                 if (rand.nextDouble() <= PLANT_CREATION_PROBABILITY) {
-                    if (rand.nextBoolean()) {
-                        field.place(new Alecrim(), location);
-                    } else {
-                        field.place(new Salvia(), location);
-                    }
+                    Planta plantaTipo;
+
+                if (rand.nextBoolean()) {
+                    plantaTipo = Planta.ALECRIM;
+                } else {
+                    plantaTipo = Planta.SALVIA;
+                }       
+                field.place(plantaTipo, location);
                 }
             }
         }

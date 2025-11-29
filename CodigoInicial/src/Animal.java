@@ -95,6 +95,10 @@ public abstract class Animal implements Actor {
     public void setFoodLevel(int foodLevel) {
         this.foodLevel = foodLevel;
     }
+
+    public int getFoodLevel() {
+        return foodLevel;
+    }
     
     public boolean isAlive() {
         return alive; 

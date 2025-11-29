@@ -1,5 +1,8 @@
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
+
 
 
 public class Rabbit extends Animal {
@@ -7,6 +10,8 @@ public class Rabbit extends Animal {
     private static final int MAX_AGE = 40;
     private static final double BREEDING_PROBABILITY = 0.15;
     private static final int MAX_LITTER_SIZE = 4;
+    private static final Random RAND = new Random();
+
 
 
     public Rabbit(boolean randomAge, Field field, Location location) {
@@ -41,19 +46,35 @@ public class Rabbit extends Animal {
         }
     }
 
+    /**
+    * Procura por uma planta comestível (Alecrim ou Sálvia) nas localizações adjacentes, 
+    * escolhendo-a de forma aleatória se houver múltiplas opções.
+    * * O método garante a aleatoriedade embaralhando a ordem das localizações adjacentes 
+    * e consumindo a primeira planta encontrada.
+    */
     public Location findFood() {
-        Iterator<Location> adjacent = getField().adjacentLocations(getLocation()).iterator();
-
-        while (adjacent.hasNext()) {
-            Planta plant = null;
-            if (plant == Planta.SALVIA) {
-                    setFoodLevel(5); 
-                }
-            if (plant == Planta.ALECRIM) {
-                    setFoodLevel(3);
-            }
+    
+    List<Location> adjacentList = getField().adjacentLocations(getLocation()); 
+    Collections.shuffle(adjacentList, RAND);
+    Iterator<Location> shuffledIterator = adjacentList.iterator();
+    
+    while (shuffledIterator.hasNext()) {
+        Location where = shuffledIterator.next();
+        
+        Object obj = getField().getObjectAt(where);
+        
+        if (obj instanceof Planta) {
+            
+            Planta plantaEncontrada = (Planta) obj;
+            
+            setFoodLevel(getFoodLevel() + plantaEncontrada.getValorAlimento());
+            getField().place(null, where); 
+            
+            return where;
         }
-        return null;
+    }
+
+    return null;
     }
 
     @Override

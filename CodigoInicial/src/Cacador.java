@@ -1,6 +1,4 @@
-import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Representa um caçador no ecossistema.
@@ -16,8 +14,7 @@ public class Cacador extends Animal implements Actor {
     private static final int MAX_LITTER_SIZE = 1;
     /** Valor nutricional da caça (restaura fome). */
     private static final int HUNT_FOOD_VALUE = 5;
-    /** RNG local. */
-    private static final Random RAND = new Random();
+    
 
     public Cacador(boolean randomAge, Field field, Location location) {
         super(randomAge, field, location);
