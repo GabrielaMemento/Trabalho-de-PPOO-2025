@@ -10,5 +10,8 @@ import java.util.List;
  * @author Leonardo Elias Rodrigues
  */
 public interface Actor {
+
+    Location findFood();
+    void act(List<Animal> newAnimals);
     
 }
