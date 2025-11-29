@@ -18,33 +18,6 @@ public class Rabbit extends Animal {
         super(randomAge, field, location);
     }
 
-    
-    @Override
-    public void act(List<Animal> newAnimals) {
-        incrementAge();
-        incrementHunger();
-        if (!isAlive()) return;
-
-        giveBirth(newAnimals);
-
-        // Procura comida (plantas) nas adjacências
-        Location newLocation = findFood();
-        if (newLocation == null) {
-            // Caso não encontre comida, tenta mover para um espaço livre
-            newLocation = getField().freeAdjacentLocation(getLocation());
-        }
-
-        Location next = getField().freeAdjacentLocation(getLocation());
-        if (next != null) {
-            Terreno terrain = getField().getTerrainAt(next);
-            if (terrain == Terreno.BURROW || terrain == Terreno.PLAIN || terrain == Terreno.DENSE_VEGETATION) {
-                setLocation(next);
-            }
-        } else {
-            
-            setDead();
-        }
-    }
 
     /**
     * Procura por uma planta comestível (Alecrim ou Sálvia) nas localizações adjacentes, 

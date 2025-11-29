@@ -1,4 +1,3 @@
-import java.util.List;
 import java.util.Iterator;
 
 /**
@@ -38,45 +37,6 @@ public class Lobo extends Animal {
     public Lobo(boolean randomAge, Field field, Location location) {
         super(randomAge, field, location);
     }
-
-    /**
-     * Executa as ações do lobo em um passo de simulação:
-     * - Envelhece e aumenta a fome.
-     * - Tenta reproduzir.
-     * - Procura comida (coelho) nas adjacências; se encontrar, move-se para lá.
-     * - Caso não encontre, tenta mover-se para uma célula adjacente livre.
-     * - Respeita restrições de terreno: não entra em RIVER ou MOUNTAIN.
-     * - Morre de fome se foodLevel chegar a zero; pode morrer por superlotação.
-     *
-     * @param newAnimals lista onde novos animais nascidos são adicionados.
-     */
-    @Override
-    public void act(List<Animal> newAnimals) {
-        incrementAge();
-        incrementHunger();
-        if (!isAlive()) return;
-
-        giveBirth(newAnimals);
-
-        // Procura comida (coelhos) nas adjacências
-        Location newLocation = findFood();
-        if (newLocation == null) {
-            // Caso não encontre comida, tenta mover para um espaço livre
-            newLocation = getField().freeAdjacentLocation(getLocation());
-        }
-
-        // Movimento respeitando restrições de terreno
-        if (newLocation != null) {
-            Terreno terrain = getField().getTerrainAt(newLocation);
-            if (terrain != Terreno.MOUNTAIN && terrain != Terreno.RIVER) {
-                setLocation(newLocation);
-            }
-        } else {
-            // Sem espaço livre: morre por superlotação
-            setDead();
-        }
-    }
-
 
     /**
      * Procura por coelhos nas células adjacentes. Se encontrar um coelho vivo,

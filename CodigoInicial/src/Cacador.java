@@ -1,5 +1,3 @@
-import java.util.List;
-
 /**
  * Representa um caçador no ecossistema.
  */
@@ -21,30 +19,7 @@ public class Cacador extends Animal implements Actor {
         setFoodLevel(HUNT_FOOD_VALUE);
         
     }
-
-    @Override
-    public void act(List<Animal> newAnimals) {
-        incrementAge();
-        incrementHunger();
-        if (!isAlive()) return;
-
-        giveBirth(newAnimals);
-
-        Location newLocation = findFood();
-        if (newLocation == null) {
-            newLocation = getField().freeAdjacentLocation(getLocation());
-        }
-
-        if (newLocation != null) {
-            Terreno terrain = getField().getTerrainAt(newLocation);
-            if (terrain != Terreno.MOUNTAIN && terrain != Terreno.RIVER) {
-                setLocation(newLocation);
-            }
-        } else {
-            setDead();
-        }
-    }
-
+    
     
 
     public Location findFood() {

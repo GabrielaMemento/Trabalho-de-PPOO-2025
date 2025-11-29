@@ -11,8 +11,6 @@ public abstract class Animal implements Actor {
     private static final Random RAND = new Random();
 
 
-    public abstract void act(List<Animal> newAnimals);
-
     
     public abstract int getBreedingAge();
 
@@ -38,6 +36,50 @@ public abstract class Animal implements Actor {
         }
     }
 
+    /**
+     * Executa as ações da raposa em um passo de simulação:
+     * - Envelhece e aumenta a fome.
+     * - Tenta reproduzir.
+     * - Procura comida (coelho) nas adjacências; se encontrar, move-se para lá.
+     * - Caso não encontre, tenta mover-se para uma célula adjacente livre.
+     * - Respeita restrições de terreno: não entra em RIVER ou MOUNTAIN.
+     * - Morre de fome se foodLevel chegar a zero; pode morrer por superlotação.
+     *
+     * @param newAnimals lista onde novos animais nascidos são adicionados.
+     */
+    public void act(List<Animal> newAnimals) {
+        incrementAge();
+        incrementHunger();
+        if (!isAlive()) return;
+
+        giveBirth(newAnimals);
+
+        // Procura comida  nas adjacências
+        Location newLocation = findFood();
+        if (newLocation == null) {
+            // Caso não encontre comida, tenta mover para um espaço livre
+            newLocation = getField().freeAdjacentLocation(getLocation());
+        }
+
+        // Movimento respeitando restrições de terreno
+    if (newLocation != null) {
+        Terreno terrain = getField().getTerrainAt(newLocation);
+        
+        
+        //  Obtém o nome do ator  para consultar a regra no arquivo
+        String nomeAtor = this.getClass().getSimpleName();
+        
+        //  Verifica se o terreno é proibido usando a classe Barreiras
+        if (!Barreiras.isProibido(nomeAtor, terrain)) {
+        setLocation(newLocation);
+        }
+    
+        
+    } else {
+        // Sem espaço livre: morre por superlotação
+        setDead();
+    }
+    }
 
     public void incrementAge() {
         age++;
