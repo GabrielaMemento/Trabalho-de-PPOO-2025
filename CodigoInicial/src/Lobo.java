@@ -1,6 +1,5 @@
 import java.util.List;
 import java.util.Iterator;
-import java.util.Random;
 
 /**
  * Representa um lobo no ecossistema.
@@ -26,9 +25,7 @@ public class Lobo extends Animal {
     /** Tamanho máximo da ninhada. */
     private static final int MAX_LITTER_SIZE = 5;
     /** Valor nutricional do coelho (restaura fome). */
-    private static final int RABBIT_FOOD_VALUE = 8;
-    /** RNG local. */
-    private static final Random RAND = new Random();
+    private static final int FOOD_VALUE = 8;
 
     /**
      * Constrói um lobo, possivelmente dando-lhe uma idade aleatória e níveis
@@ -39,12 +36,7 @@ public class Lobo extends Animal {
      * @param location localização inicial.
      */
     public Lobo(boolean randomAge, Field field, Location location) {
-        super(field, location);
-        setFoodLevel(RABBIT_FOOD_VALUE);
-        if (randomAge) {
-            setAge(RAND.nextInt(MAX_AGE));
-            setFoodLevel(RAND.nextInt(RABBIT_FOOD_VALUE) + 1);
-        }
+        super(randomAge, field, location);
     }
 
     /**
@@ -85,43 +77,6 @@ public class Lobo extends Animal {
         }
     }
 
-    /**
-     * Incrementa a idade e verifica morte por velhice.
-     */
-    @Override
-    public void incrementAge() {
-        setAge(getAge() + 1);
-        if (getAge() > MAX_AGE) setDead();
-    }
-
-    /**
-     * Calcula o número de filhotes gerados neste passo (se reprodução ocorrer).
-     *
-     * @return número de novos filhotes (0 se não houve reprodução).
-     */
-    @Override
-    public int breed() {
-        if (canBreed() && RAND.nextDouble() <= BREEDING_PROBABILITY) {
-            return RAND.nextInt(MAX_LITTER_SIZE) + 1;
-        }
-        return 0;
-    }
-
-    /**
-     * Verifica se o lobo tem idade suficiente para reproduzir.
-     *
-     * @return true se idade >= BREEDING_AGE.
-     */
-    @Override
-    public boolean canBreed() { return getAge() >= BREEDING_AGE; }
-
-    /**
-     * Incrementa a fome; se chegar a zero, o lobo morre de inanição.
-     */
-    private void incrementHunger() {
-        setFoodLevel(getFoodLevel() - 1);
-        if (getFoodLevel() <= 0) setDead();
-    }
 
     /**
      * Procura por coelhos nas células adjacentes. Se encontrar um coelho vivo,
@@ -129,7 +84,7 @@ public class Lobo extends Animal {
      *
      * @return localização da comida encontrada ou null se não houver.
      */
-    private Location findFood() {
+    public Location findFood() {
         Iterator<Location> adjacent = getField().adjacentLocations(getLocation()).iterator();
         while (adjacent.hasNext()) {
             Location where = adjacent.next();
@@ -138,7 +93,7 @@ public class Lobo extends Animal {
                 Rabbit rabbit = (Rabbit) obj;
                 if (rabbit.isAlive()) {
                     rabbit.setDead();
-                    setFoodLevel(RABBIT_FOOD_VALUE);
+                    setFoodLevel(FOOD_VALUE);
                     return where;
                 }
             }
@@ -146,17 +101,29 @@ public class Lobo extends Animal {
         return null;
     }
 
-    /**
-     * Processa o nascimento de novos lobos, posicionando-os nas adjacências livres.
-     *
-     * @param newAnimals lista onde novos lobos são adicionados.
-     */
-    private void giveBirth(List<Animal> newAnimals) {
-        List<Location> free = getField().getFreeAdjacent(getLocation());
-        int births = breed();
-        for (int b = 0; b < births && !free.isEmpty(); b++) {
-            Location loc = free.remove(0);
-            newAnimals.add(new Lobo(false, getField(), loc));
-        }
+    @Override
+    public int getBreedingAge() {
+        return BREEDING_AGE;
     }
+
+    @Override
+    public double getBreedingProbability() {
+        return BREEDING_PROBABILITY;
+    }
+
+    @Override
+    public int getMaxLitterSize() {
+        return MAX_LITTER_SIZE;
+    }
+
+    @Override
+    public int getMaxAge() {
+        return MAX_AGE;
+    }
+
+    public int getFoodValue() {
+        return FOOD_VALUE;
+    }
+
+
 }

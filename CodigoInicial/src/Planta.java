@@ -1,27 +1,17 @@
-/**
- * Classe abstrata para plantas no campo.
- * Subclasses específicas (Alecrim, Sálvia) definem seus efeitos.
- */
-public abstract class Planta {
-    private boolean taVivo;
+public enum Planta {
+    // Definindo os valores de alimento em cada constante
+    ALECRIM(5),
+    SALVIA(3);
 
-    public Planta() {
-        this.taVivo = true;
+    private final int valorAlimento;
+
+    /** Construtor do enum. */
+    Planta(int valorAlimento) {
+        this.valorAlimento = valorAlimento;
     }
 
-    public boolean isAlive() {
-        return taVivo;
+    /** Retorna o valor de alimento da constante. */
+    public int getValorAlimento() {
+        return valorAlimento;
     }
-
-    public void setDead() {
-        taVivo = false;
-    }
-
-    /** Cada planta define o valor de alimento que fornece. */
-    public abstract int getValorAlimento();
-
-    /** Nome da planta (para estatísticas e visualização). */
-    public abstract String getName();
- 
-    
 }

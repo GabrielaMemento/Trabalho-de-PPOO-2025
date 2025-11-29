@@ -11,22 +11,4 @@ import java.util.List;
  */
 public interface Actor {
     
-    /**
-     * Executa as ações deste ator em um passo da simulação.
-     *
-     * @param newActors Lista onde novos atores nascidos/criados devem ser adicionados.
-     *
-     */
-    void act(List<Actor> newActors);
-    
-    /**
-     * Verifica se este ator ainda está ativo na simulação.
-     * @return true se o ator está vivo e ativo; false se está morto/inativo.
-     */
-    boolean isAlive();
-    
-    /**
-     * Marca este ator como morto/inativo.
-     */
-    void setDead();
 }

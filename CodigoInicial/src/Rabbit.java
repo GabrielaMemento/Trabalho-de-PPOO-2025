@@ -1,75 +1,34 @@
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
-/**
- * Representa um coelho no ecossistema.
- *
- * - Coelhos são presas principais, com reprodução rápida.
- * - Alimentam-se de plantas (Alecrim, Sálvia), recuperando energia ao consumir.
- * - Movimentação é restrita por tipos de terreno: BURROW, PLAIN, DENSE_VEGETATION.
- *
- * Esta classe foi expandida para consumir plantas e respeitar restrições de terreno,
- * conforme a proposta do grupo.
- *
- * @author Base: Barnes & Kolling
- * @version 2002-04-23 (revisado 2025-11 para plantas e terrenos)
- */
+
 public class Rabbit extends Animal {
-    /** Idade mínima para reprodução. */
     private static final int BREEDING_AGE = 5;
-    /** Idade máxima (após isso morre de velhice). */
     private static final int MAX_AGE = 40;
-    /** Probabilidade de reprodução a cada passo. */
     private static final double BREEDING_PROBABILITY = 0.15;
-    /** Tamanho máximo da ninhada. */
     private static final int MAX_LITTER_SIZE = 4;
-    /** RNG local para inicializações. */
-    private static final Random RAND = new Random();
 
-    /**
-     * Cria um novo coelho nascido ou com idade aleatória.
-     *
-     * @param randomAge se true, atribui idade inicial aleatória.
-     * @param field campo da simulação.
-     * @param location localização inicial.
-     */
+
     public Rabbit(boolean randomAge, Field field, Location location) {
-        super(field, location);
-        if (randomAge) {
-            setAge(RAND.nextInt(MAX_AGE)); 
-        }
-        setFoodLevel(5);//inicial 
+        super(randomAge, field, location);
     }
 
-    /**
-     * Executa as ações do coelho em um passo de simulação:
-     * - Envelhece e verifica morte por idade.
-     * - Consome planta se houver na célula atual.
-     * - Tenta reproduzir.
-     * - Move para uma célula adjacente permitida pelo terreno.
-     * - Pode morrer por superlotação (se não houver espaço).
-     *
-     * @param newAnimals lista onde novos animais nascidos são adicionados.
-     */
+    
     @Override
     public void act(List<Animal> newAnimals) {
         incrementAge();
+        incrementHunger();
         if (!isAlive()) return;
 
-        // Consome planta se houver na célula atual
-        Object obj = getField().getObjectAt(getLocation());
-        if (obj instanceof Planta) {
-            Planta plant = (Planta) obj;
-            if (plant.isAlive()) {
-                plant.setDead();
-                setFoodLevel(plant.getValorAlimento());
-            }
-        }
-
-        // Reprodução
         giveBirth(newAnimals);
 
-        // Movimento restrito por terreno
+        // Procura comida (plantas) nas adjacências
+        Location newLocation = findFood();
+        if (newLocation == null) {
+            // Caso não encontre comida, tenta mover para um espaço livre
+            newLocation = getField().freeAdjacentLocation(getLocation());
+        }
+
         Location next = getField().freeAdjacentLocation(getLocation());
         if (next != null) {
             Terreno terrain = getField().getTerrainAt(next);
@@ -77,52 +36,45 @@ public class Rabbit extends Animal {
                 setLocation(next);
             }
         } else {
-            // Sem espaço livre: morre por superlotação
+            
             setDead();
         }
     }
 
-    /**
-     * Incrementa a idade e verifica se excedeu o limite.
-     */
-    @Override
-    public void incrementAge() {
-        setAge(getAge()+1);
-        if (getAge() > MAX_AGE) setDead();
-    }
+    public Location findFood() {
+        Iterator<Location> adjacent = getField().adjacentLocations(getLocation()).iterator();
 
-    /**
-     * Retorna o número de filhotes gerados neste passo (se ocorrer reprodução).
-     *
-     * @return número de nascimentos (0 se não reproduziu).
-     */
-    @Override
-    public int breed() {
-        if (canBreed() && RAND.nextDouble() <= BREEDING_PROBABILITY) {
-            return RAND.nextInt(MAX_LITTER_SIZE) + 1;
+        while (adjacent.hasNext()) {
+            Planta plant = null;
+            if (plant == Planta.SALVIA) {
+                    setFoodLevel(5); 
+                }
+            if (plant == Planta.ALECRIM) {
+                    setFoodLevel(3);
+            }
         }
-        return 0;
+        return null;
     }
 
-    /**
-     * Verifica se o coelho tem idade suficiente para reproduzir.
-     *
-     * @return true se idade >= BREEDING_AGE.
-     */
     @Override
-    public boolean canBreed() { return getAge() >= BREEDING_AGE; }
-
-    /**
-     * Processa o nascimento de novos coelhos, alocando-os em células adjacentes livres.
-     *
-     * @param newAnimals lista onde novos coelhos são adicionados.
-     */
-    private void giveBirth(List<Animal> newAnimals) {
-        List<Location> free = getField().getFreeAdjacent(getLocation());
-        int births = breed();
-        for (int b = 0; b < births && !free.isEmpty(); b++) {
-            Location loc = free.remove(0);
-            newAnimals.add(new Rabbit(false, getField(), loc));
-        }
+    public int getBreedingAge() { 
+        return BREEDING_AGE; 
     }
+
+    @Override
+    public int getMaxAge() { 
+        return MAX_AGE; 
+    }
+
+    @Override
+    public double getBreedingProbability() {
+        return BREEDING_PROBABILITY;
+    }
+
+    @Override
+    public int getMaxLitterSize() {
+        return MAX_LITTER_SIZE;
+    }
+
+
 }
