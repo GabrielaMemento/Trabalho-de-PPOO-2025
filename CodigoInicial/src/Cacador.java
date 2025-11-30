@@ -1,3 +1,4 @@
+import java.util.Iterator;
 /**
  * Representa um caçador no ecossistema.
  */
@@ -21,10 +22,28 @@ public class Cacador extends Animal implements Actor {
     }
     
     
-
     public Location findFood() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findFood'");
+        Iterator<Location> adjacent = getField().adjacentLocations(getLocation()).iterator();
+        
+        while (adjacent.hasNext()) {
+            Location where = adjacent.next();
+            Object obj = getField().getObjectAt(where);
+
+        // O caçador pode caçar qualquer animal
+            if (obj instanceof Animal) {
+                Animal alvo = (Animal) obj;
+                if (alvo.isAlive()) {
+                    // Mata o animal
+                    alvo.setDead();
+                    // Recupera energia ao caçar
+                    setFoodLevel(HUNT_FOOD_VALUE);
+                    // Retorna a posição do animal caçado (para mover-se até lá)
+                    return where;
+                }
+            }
+        }
+    return null;
+
     }
 
     @Override
