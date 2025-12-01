@@ -14,7 +14,7 @@ public class Hunter extends Animal {
     private static final int MAX_AGE = 300;
     private static final double BREEDING_PROBABILITY = 0.03; 
     private static final int MAX_LITTER_SIZE = 1;
-    private static final int HUNT_FOOD_VALUE = 15; 
+    private static final int HUNT_FOOD_VALUE = 10; 
     
     /**
      * Constrói um caçador.

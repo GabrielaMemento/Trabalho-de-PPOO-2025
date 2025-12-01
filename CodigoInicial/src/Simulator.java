@@ -16,18 +16,18 @@ public class Simulator {
     private static final int DEFAULT_WIDTH = 50;
     private static final int DEFAULT_DEPTH = 50;
     
-    // Probabilidades de Criação 
-    private static final double PLANT_CREATION_PROBABILITY = 0.10; // Base da cadeia alimentar
-    private static final double RABBIT_CREATION_PROBABILITY = 0.08; // Herbívoro primário
-    private static final double FOX_CREATION_PROBABILITY = 0.04; // Predador secundário
-    private static final double WOLF_CREATION_PROBABILITY = 0.06; // Predador intermediário
-    private static final double SNAKE_CREATION_PROBABILITY = 0.04; // Predador de topo
-    private static final double EAGLE_CREATION_PROBABILITY = 0.04; // Superpredador
-    private static final double HUNTER_CREATION_PROBABILITY = 0.03; // Fator externo raro
+    // Probabilidades de Criação
+    private static final double PLANT_CREATION_PROBABILITY = 0.15; 
+    private static final double RABBIT_CREATION_PROBABILITY = 0.08; 
+    private static final double FOX_CREATION_PROBABILITY = 0.02; 
+    private static final double WOLF_CREATION_PROBABILITY = 0.07; 
+    private static final double SNAKE_CREATION_PROBABILITY = 0.02; 
+    private static final double EAGLE_CREATION_PROBABILITY = 0.05; 
+    private static final double HUNTER_CREATION_PROBABILITY = 0.05; 
 
     // Dinâmica de Plantas 
-    private static final double PLANT_GROWTH_PROBABILITY = 0.25; // Crescimento sazonal
-    private static final double PLANT_DEATH_PROBABILITY = 0.05;  // Mortalidade natural
+    private static final double PLANT_GROWTH_PROBABILITY = 0.25;
+    private static final double PLANT_DEATH_PROBABILITY = 0.05;
 
     /** Lista de atores ativos na simulação (Animais e Plantas). */
     private final List<Actor> actors;
@@ -40,7 +40,6 @@ public class Simulator {
     /** Gerador de números aleatórios. */
     private final Random rand = new Random();
     
-    // CORREÇÃO: Variável para armazenar o limite de passos inicial passado pelo Main.
     private int initialRunSteps = 0; 
 
     /**
@@ -81,21 +80,13 @@ public class Simulator {
     
     /**
      * Define o número de passos a executar e inicia o Timer para rodar a simulação visualmente.
-     *
-     * @param numSteps Número total de passos a executar a partir do Passo 0.
      */
     public void simulate(int numSteps) {
-        // CORREÇÃO: Armazena o valor passado (ex: 10) para uso futuro pelo Reset
         this.initialRunSteps = numSteps; 
-        
-        // Define a meta de parada (Passo 0 + 10 = Passo 10)
         this.view.setTargetSteps(numSteps);
-        
-        // Dispara o Timer (equivalente a clicar em 'Play')
         this.view.play(); 
     }
     
-    // Novo método para permitir que o SimulatorView obtenha o limite inicial de passos
     public int getInitialRunSteps() {
         return initialRunSteps;
     }
@@ -181,65 +172,56 @@ public class Simulator {
     }
 
     /**
-     * Popula o campo inicial com entidades.
+     * Popula o campo inicial usando probabilidades independentes (modelo original).
      */
     private void populate() {
         field.clear();
-        actors.clear();
-        
-        double currentProb = 0.0;
-        
+        actors.clear(); // Limpa a lista, pois animais serão adicionados aqui
+
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
                 Location location = new Location(row, col);
-                double r = rand.nextDouble();
-                currentProb = 0.0;
-
-                // 1. Tentativa de criar um Animal (Ordem de prioridade por densidade)
-                Animal newAnimal = null;
-
-                currentProb += RABBIT_CREATION_PROBABILITY;
-                if (r < currentProb) {
-                    newAnimal = new Rabbit();
-                } else {
-                    currentProb += FOX_CREATION_PROBABILITY;
-                    if (r < currentProb) {
-                        newAnimal = new Fox();
-                    } else {
-                        currentProb += WOLF_CREATION_PROBABILITY;
-                        if (r < currentProb) {
-                            newAnimal = new Wolf();
-                        } else {
-                            currentProb += SNAKE_CREATION_PROBABILITY;
-                            if (r < currentProb) {
-                                newAnimal = new Snake();
-                            } else {
-                                currentProb += EAGLE_CREATION_PROBABILITY;
-                                if (r < currentProb) {
-                                    newAnimal = new Eagle();
-                                } else {
-                                    currentProb += HUNTER_CREATION_PROBABILITY;
-                                    if (r < currentProb) {
-                                        newAnimal = new Hunter();
-                                    }
-                                }
-                            }
-                        }
-                    }
+                
+                // Variável auxiliar para rastrear o último ator criado (se houver colisão)
+                Animal createdAnimal = null;
+                
+                // 1. ANIMAIS (Probabilidades Independentes - Colisão é possível, a última entidade vence)
+                
+                if (rand.nextDouble() <= WOLF_CREATION_PROBABILITY) {
+                    createdAnimal = new Wolf();
+                }
+                if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
+                    createdAnimal = new Fox();
+                }
+                if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
+                    createdAnimal = new Rabbit();
+                }
+                if (rand.nextDouble() <= EAGLE_CREATION_PROBABILITY) {
+                    createdAnimal = new Eagle();
+                }
+                if (rand.nextDouble() <= HUNTER_CREATION_PROBABILITY) {
+                    createdAnimal = new Hunter();
+                }
+                if (rand.nextDouble() <= SNAKE_CREATION_PROBABILITY) {
+                    createdAnimal = new Snake();
                 }
                 
-                if (newAnimal != null) {
-                    newAnimal.setAge(rand.nextInt(newAnimal.getMaxAge())); 
-                    newAnimal.setFoodLevel(rand.nextInt(15) + 5); 
+                if (createdAnimal != null) {
+                    // Inicialização de estado (Idade e Fome)
+                    createdAnimal.setAge(rand.nextInt(createdAnimal.getMaxAge())); 
+                    createdAnimal.setFoodLevel(rand.nextInt(15) + 5); 
                     
-                    newAnimal.setLocation(location);
-                    field.place(newAnimal, location);
-                    actors.add(newAnimal);
+                    // Coloca no campo e na lista de atores
+                    createdAnimal.setLocation(location);
+                    field.place(createdAnimal, location);
+                    actors.add(createdAnimal);
+                    
+                    // Continuamos, pois um animal já ocupa a célula e venceu a colisão
                     continue; 
                 }
                 
-                // 2. Plantas iniciais (Só se a célula estiver vazia)
-                if (r < PLANT_CREATION_PROBABILITY) {
+                // 2. PLANTAS INICIAIS (Só se a célula estiver vazia - não precisa de verificação extra, pois o continue acima já lida com isso)
+                if (rand.nextDouble() <= PLANT_CREATION_PROBABILITY) {
                     Plant newPlant = rand.nextBoolean() ? Plant.ROSEMARY : Plant.SAGE;
                     newPlant.setLocation(location); 
                     field.place(newPlant, location);

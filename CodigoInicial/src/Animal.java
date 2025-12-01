@@ -181,8 +181,8 @@ public abstract class Animal implements Actor {
     }
 
     /**
-     * Gera um número de nascimentos, se o animal puder procriar.
-     * @return O número de nascimentos (pode ser zero).
+     * Gera um número de nascimentos.
+     * @return O número de nascimentos 
      */
     protected int breed() {
         int births = 0;
