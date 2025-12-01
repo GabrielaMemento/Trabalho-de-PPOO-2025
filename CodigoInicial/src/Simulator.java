@@ -18,8 +18,8 @@ public class Simulator {
     
     // Probabilidades de Criação
     private static final double PLANT_CREATION_PROBABILITY = 0.15; 
-    private static final double RABBIT_CREATION_PROBABILITY = 0.08; 
-    private static final double FOX_CREATION_PROBABILITY = 0.02; 
+    private static final double RABBIT_CREATION_PROBABILITY = 0.20; 
+    private static final double FOX_CREATION_PROBABILITY = 0.05; 
     private static final double WOLF_CREATION_PROBABILITY = 0.07; 
     private static final double SNAKE_CREATION_PROBABILITY = 0.02; 
     private static final double EAGLE_CREATION_PROBABILITY = 0.05; 

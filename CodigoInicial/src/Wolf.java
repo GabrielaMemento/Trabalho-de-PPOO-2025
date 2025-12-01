@@ -10,9 +10,9 @@ import java.util.List;
 public class Wolf extends Animal {
     
     // Constantes da Espécie
-    private static final int BREEDING_AGE = 12;
-    private static final int MAX_AGE = 300;
-    private static final double BREEDING_PROBABILITY = 0.05; 
+    private static final int BREEDING_AGE = 10;
+    private static final int MAX_AGE = 150;
+    private static final double BREEDING_PROBABILITY = 0.4; 
     private static final int MAX_LITTER_SIZE = 5;
     private static final int FOOD_VALUE = 10; 
 

@@ -12,7 +12,7 @@ public class Eagle extends Animal {
     // Constantes da Espécie
     private static final int BREEDING_AGE = 15;
     private static final int MAX_AGE = 200;
-    private static final double BREEDING_PROBABILITY = 0.04; 
+    private static final double BREEDING_PROBABILITY = 0.3; 
     private static final int MAX_LITTER_SIZE = 2;
     private static final int FOOD_VALUE = 10; 
     
