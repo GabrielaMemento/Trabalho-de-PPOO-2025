@@ -1,19 +1,18 @@
 /**
- * Represent a location in a rectangular grid.
- * 
- * @author David J. Barnes and Michael Kolling
- * @version 2002-04-09
+ * Representa uma localização em uma grade retangular.
+ * @author Grupo 1
+ * @version 2025
  */
 public class Location
 {
-    // Row and column positions.
-    private int row;
-    private int col;
+    // Posições de linha e coluna.
+    private final int row;
+    private final int col;
 
     /**
-     * Represent a row and column.
-     * @param row The row.
-     * @param col The column.
+     * Representa uma linha e coluna.
+     * @param row A linha.
+     * @param col A coluna.
      */
     public Location(int row, int col)
     {
@@ -22,40 +21,38 @@ public class Location
     }
     
     /**
-     * Implement content equality.
+     * Implementa a igualdade de conteúdo.
      */
+    @Override
     public boolean equals(Object obj)
     {
-        if(obj instanceof Location) {
-            Location other = (Location) obj;
+        if(obj instanceof Location other) {
             return row == other.getRow() && col == other.getCol();
         }
-        else {
-            return false;
-        }
+        return false;
     }
     
     /**
-     * Return a string of the form row,column
-     * @return A string representation of the location.
+     * Retorna uma string no formato linha,coluna.
+     * @return Uma representação em string da localização.
      */
+    @Override
     public String toString()
     {
         return row + "," + col;
     }
     
     /**
-     * Use the top 16 bits for the row value and the bottom for
-     * the column. Except for very big grids, this should give a
-     * unique hash code for each (row, col) pair.
+     * Calcula um código de hash único para cada par (linha, coluna).
      */
+    @Override
     public int hashCode()
     {
         return (row << 16) + col;
     }
     
     /**
-     * @return The row.
+     * @return O valor da linha.
      */
     public int getRow()
     {
@@ -63,11 +60,10 @@ public class Location
     }
     
     /**
-     * @return The column.
+     * @return O valor da coluna.
      */
     public int getCol()
     {
         return col;
     }
 }
-

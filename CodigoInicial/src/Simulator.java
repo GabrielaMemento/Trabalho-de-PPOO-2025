@@ -5,61 +5,43 @@ import java.util.Iterator;
 import java.awt.Color;
 
 /**
- * Classe principal da simulação do ecossistema.
+ * Classe principal que controla o ciclo da simulação do ecossistema.
  *
- * Responsabilidades:
- * - Controlar o ciclo da simulação (passos, reinício, execução longa).
- * - Manter a lista de animais ativos e o campo (Field) com objetos e terrenos.
- * - Popular o campo inicial com raposas, coelhos e plantas (Alecrim, Sálvia).
- * - Coordenar a interação entre animais e plantas a cada passo.
- * - Atualizar a interface gráfica (SimulatorView) com o estado atual.
- *
- * Convenções:
- * - Cada passo da simulação corresponde a uma chamada de {@link #simulateOneStep()}.
- * - Animais mortos são removidos da lista principal.
- * - Novos animais nascidos são adicionados ao final de cada passo.
- * - A simulação continua enquanto for viável (mais de uma espécie presente).
- *
- * Extensões:
- * - Probabilidades de criação de espécies podem ser ajustadas para calibrar o ecossistema.
- * - Novos tipos de animais ou plantas podem ser adicionados na função {@link #populate(Field)}.
- *
- * @author
- *   Base: Barnes & Kolling
- * @version
- *   2002-04-23 (comentado e revisado em 2025-11 para plantas e terrenos)
+ * @author Grupo 1
+ * @version 2025
  */
 public class Simulator {
-    /** Largura padrão do campo (número de colunas). */
+
+    // Constantes de Dimensão e Probabilidade
     private static final int DEFAULT_WIDTH = 50;
-    /** Profundidade padrão do campo (número de linhas). */
     private static final int DEFAULT_DEPTH = 50;
-
-    /** Probabilidade de criação inicial de raposas em cada célula. */
-    private static final double FOX_CREATION_PROBABILITY = 0.02;
-    /** Probabilidade de criação inicial de coelhos em cada célula. */
-    private static final double RABBIT_CREATION_PROBABILITY = 0.08;
-    /** Probabilidade de criação inicial de plantas em cada célula. */
-    private static final double PLANT_CREATION_PROBABILITY = 0.10;
-    /** Probabilidade de criação inicial de lobos em cada célula. */
-    private static final double WOLF_CREATION_PROBABILITY = 0.06;
-    /** Probabilidade de criação inicial de águias em cada célula. */
-    private static final double EAGLE_CREATION_PROBABILITY = 0.012;
-    /** Probabilidade de criação inicial de caçadores em cada célula. */
-    private static final double HUNTER_CREATION_PROBABILITY = 0.012;
     
+    // Probabilidades de Criação 
+    private static final double PLANT_CREATION_PROBABILITY = 0.02; 
+    private static final double RABBIT_CREATION_PROBABILITY = 0.20; 
+    private static final double FOX_CREATION_PROBABILITY = 0.10; 
+    private static final double WOLF_CREATION_PROBABILITY = 0.06; 
+    private static final double SNAKE_CREATION_PROBABILITY = 0.12; 
+    private static final double EAGLE_CREATION_PROBABILITY = 0.015; 
+    private static final double HUNTER_CREATION_PROBABILITY = 0.012; 
 
+    // Dinâmica de Plantas 
+    private static final double PLANT_GROWTH_PROBABILITY = 0.25;
+    private static final double PLANT_DEATH_PROBABILITY = 0.05;
 
-    /** Lista de animais ativos na simulação. */
-    private final ArrayList<Animal> animals;
+    /** Lista de atores ativos na simulação (Animais e Plantas). */
+    private final List<Actor> actors;
     /** Campo da simulação (grade com objetos e terrenos). */
-    private Field field;
+    public Field field; 
     /** Número do passo atual da simulação. */
-    private int step;
+    public int step; 
     /** Interface gráfica para exibir o estado da simulação. */
-    private SimulatorView view;
-    /** Gerador de números aleatórios para inicialização e eventos. */
+    private final SimulatorView view;
+    /** Gerador de números aleatórios. */
     private final Random rand = new Random();
+    
+    // CORREÇÃO: Variável para armazenar o limite de passos inicial passado pelo Main.
+    private int initialRunSteps = 0; 
 
     /**
      * Construtor padrão: cria um simulador com dimensões padrão.
@@ -70,131 +52,198 @@ public class Simulator {
 
     /**
      * Construtor: cria um simulador com dimensões especificadas.
-     * Se dimensões inválidas forem fornecidas, usa valores padrão.
-     *
-     * @param depth número de linhas do campo.
-     * @param width número de colunas do campo.
      */
     public Simulator(int depth, int width) {
         if (width <= 0 || depth <= 0) {
             depth = DEFAULT_DEPTH;
             width = DEFAULT_WIDTH;
         }
-        animals = new ArrayList<>();
+        
+        actors = new ArrayList<>();
         field = new Field(depth, width);
 
-        // Configura a interface gráfica e cores das entidades
+        Barriers.loadRestrictions();
+
         view = new SimulatorView(depth, width);
         view.setColor(Fox.class, Color.orange);
         view.setColor(Rabbit.class, Color.lightGray);
-        view.setColor(Lobo.class, Color.darkGray);
-        view.setColor(Aguia.class, Color.yellow);
-        view.setColor(Cobra.class, Color.black);
-        view.setColor(Cacador.class, Color.cyan);
-        view.setColor(Planta.ALECRIM.getClass(), Color.green);
-        view.setColor(Planta.SALVIA.getClass(), Color.green);
+        view.setColor(Wolf.class, Color.darkGray);
+        view.setColor(Eagle.class, Color.yellow);
+        view.setColor(Snake.class, Color.black);
+        view.setColor(Hunter.class, Color.cyan);
+        view.setColor(Plant.ROSEMARY.getClass(), Color.green.darker());
+        view.setColor(Plant.SAGE.getClass(), Color.green.brighter());
 
-        reset();
+        view.setSimulator(this);
+
+        reset(); // Chama reset e exibe o Passo 0
     }
-
+    
     /**
-     * Executa uma simulação longa (500 passos).
-     */
-    public void runLongSimulation() {
-        simulate(500);
-    }
-
-    /**
-     * Executa a simulação por um número específico de passos.
-     * Interrompe se a simulação deixar de ser viável.
+     * Define o número de passos a executar e inicia o Timer para rodar a simulação visualmente.
      *
-     * @param numSteps número de passos a executar.
+     * @param numSteps Número total de passos a executar a partir do Passo 0.
      */
     public void simulate(int numSteps) {
-        for (int i = 1; i <= numSteps && view.isViable(field); i++) {
-            simulateOneStep();
-        }
+        // CORREÇÃO: Armazena o valor passado (ex: 10) para uso futuro pelo Reset
+        this.initialRunSteps = numSteps; 
+        
+        // Define a meta de parada (Passo 0 + 10 = Passo 10)
+        this.view.setTargetSteps(numSteps);
+        
+        // Dispara o Timer (equivalente a clicar em 'Play')
+        this.view.play(); 
+    }
+    
+    // Novo método para permitir que o SimulatorView obtenha o limite inicial de passos
+    public int getInitialRunSteps() {
+        return initialRunSteps;
     }
 
     /**
-     * Executa um único passo da simulação:
-     * - Incrementa o contador de passos.
-     * - Cada animal age (move, come, reproduz).
-     * - Remove animais mortos.
-     * - Adiciona novos animais nascidos.
-     * - Atualiza a interface gráfica.
+     * Executa um único passo da simulação.
      */
     public void simulateOneStep() {
         step++;
-        List<Animal> newAnimals = new ArrayList<>();
+        
+        Field nextField = new Field(field);
+        List<Actor> newActors = new ArrayList<>();
 
-        for (Iterator<Animal> iter = animals.iterator(); iter.hasNext();) {
-            Animal animal = iter.next();
-            animal.act(newAnimals);
-            if (!animal.isAlive()) {
+        for (Iterator<Actor> iter = actors.iterator(); iter.hasNext();) {
+            Actor actor = iter.next();
+
+            actor.act(field, nextField, newActors); 
+            
+            boolean shouldRemove = false;
+
+            if (actor instanceof Animal animal) {
+                if (!animal.isAlive()) {
+                    shouldRemove = true;
+                }
+            } else if (actor instanceof Plant plant) {
+                if (rand.nextDouble() <= PLANT_DEATH_PROBABILITY) {
+                    shouldRemove = true;
+                }
+            }
+            
+            if (shouldRemove) {
                 iter.remove();
+                if (actor.getLocation() != null) {
+                    nextField.clear(actor.getLocation());
+                }
             }
         }
 
-        animals.addAll(newAnimals);
+        managePlants(nextField);
+        actors.addAll(newActors);
+        field = nextField;
         view.showStatus(step, field);
     }
 
     /**
-     * Reinicia a simulação:
-     * - Zera o contador de passos.
-     * - Limpa lista de animais e campo.
-     * - Popula o campo com animais e plantas iniciais.
-     * - Atualiza a interface gráfica.
+     * Reinicia a simulação.
      */
     public void reset() {
         step = 0;
-        animals.clear();
-        field.clear();
-        populate(field);
+        actors.clear();
+        field = new Field(field.getDepth(), field.getWidth()); 
+        populate();
         view.showStatus(step, field);
     }
 
     /**
-     * Popula o campo inicial com raposas, coelhos e plantas.
-     * Cada célula tem uma probabilidade de receber uma entidade.
-     *
-     * @param field campo a ser populado.
+     * Gerencia o ciclo de vida das plantas: apenas o crescimento.
      */
-    private void populate(Field field) {
+    private void managePlants(Field updatedField) {
+        growPlants(updatedField);
+    }
+
+    /**
+     * Faz crescer novas plantas em células vazias do campo de destino.
+     */
+    private void growPlants(Field currentField) {
+        for (int row = 0; row < currentField.getDepth(); row++) {
+            for (int col = 0; col < currentField.getWidth(); col++) {
+                Location location = new Location(row, col);
+                
+                if (currentField.getObjectAt(location) == null) {
+                    if (rand.nextDouble() <= PLANT_GROWTH_PROBABILITY) {
+                        
+                        Plant newPlant = rand.nextBoolean() ? Plant.ROSEMARY : Plant.SAGE;
+                        
+                        newPlant.setLocation(location);
+                        currentField.place(newPlant, location);
+                        actors.add(newPlant);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Popula o campo inicial com entidades.
+     */
+    private void populate() {
         field.clear();
+        actors.clear();
+        
+        double currentProb = 0.0;
+        
         for (int row = 0; row < field.getDepth(); row++) {
             for (int col = 0; col < field.getWidth(); col++) {
                 Location location = new Location(row, col);
+                double r = rand.nextDouble();
+                currentProb = 0.0;
 
-                if (rand.nextDouble() <= FOX_CREATION_PROBABILITY) {
-                    animals.add(new Fox(true, field, location));
-                }
-                if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
-                    animals.add(new Rabbit(true, field, location));
-                }
-                if (rand.nextDouble() <= RABBIT_CREATION_PROBABILITY) {
-                    animals.add(new Rabbit(true, field, location));
-                }
-                if (rand.nextDouble() <= WOLF_CREATION_PROBABILITY) {
-                    animals.add(new Lobo(true, field, location));
-                }
-                if (rand.nextDouble() <= EAGLE_CREATION_PROBABILITY) {
-                    animals.add(new Aguia(true, field, location));
-                }
-                if (rand.nextDouble() <= HUNTER_CREATION_PROBABILITY) {
-                    animals.add(new Cacador(true, field, location));
+                // 1. Tentativa de criar um Animal (Ordem de prioridade por densidade)
+                Animal newAnimal = null;
+
+                currentProb += RABBIT_CREATION_PROBABILITY;
+                if (r < currentProb) {
+                    newAnimal = new Rabbit();
+                } else {
+                    currentProb += FOX_CREATION_PROBABILITY;
+                    if (r < currentProb) {
+                        newAnimal = new Fox();
+                    } else {
+                        currentProb += WOLF_CREATION_PROBABILITY;
+                        if (r < currentProb) {
+                            newAnimal = new Wolf();
+                        } else {
+                            currentProb += SNAKE_CREATION_PROBABILITY;
+                            if (r < currentProb) {
+                                newAnimal = new Snake();
+                            } else {
+                                currentProb += EAGLE_CREATION_PROBABILITY;
+                                if (r < currentProb) {
+                                    newAnimal = new Eagle();
+                                } else {
+                                    currentProb += HUNTER_CREATION_PROBABILITY;
+                                    if (r < currentProb) {
+                                        newAnimal = new Hunter();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 
-                if (rand.nextDouble() <= PLANT_CREATION_PROBABILITY) {
-                    Planta plantaTipo;
-
-                if (rand.nextBoolean()) {
-                    plantaTipo = Planta.ALECRIM;
-                } else {
-                    plantaTipo = Planta.SALVIA;
-                }       
-                field.place(plantaTipo, location);
+                if (newAnimal != null) {
+                    newAnimal.setAge(rand.nextInt(newAnimal.getMaxAge())); 
+                    newAnimal.setFoodLevel(rand.nextInt(15) + 5); 
+                    
+                    newAnimal.setLocation(location);
+                    field.place(newAnimal, location);
+                    actors.add(newAnimal);
+                    continue; 
+                }
+                
+                // 2. Plantas iniciais (Só se a célula estiver vazia)
+                if (r < PLANT_CREATION_PROBABILITY) {
+                    Plant newPlant = rand.nextBoolean() ? Plant.ROSEMARY : Plant.SAGE;
+                    newPlant.setLocation(location); 
+                    field.place(newPlant, location);
+                    actors.add(newPlant);
                 }
             }
         }

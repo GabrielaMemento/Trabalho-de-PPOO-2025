@@ -1,61 +1,61 @@
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
- * Representa um coelho (herbívoro) no ecossistema.
+ * Representa uma cobra no ecossistema.
  *
  * @author Grupo 1
  * @version 2025
  */
-public class Rabbit extends Animal {
-    
-    // Constantes da Espécie
-    private static final int BREEDING_AGE = 5;
-    private static final int MAX_AGE = 150; 
-    private static final double BREEDING_PROBABILITY = 0.35; 
-    private static final int MAX_LITTER_SIZE = 4;
+public class Snake extends Animal {
 
+    // Constantes da Espécie
+    private static final int BREEDING_AGE = 8;
+    private static final int MAX_AGE = 100;
+    private static final double BREEDING_PROBABILITY = 0.30; 
+    private static final int MAX_LITTER_SIZE = 4;
+    private static final int FOOD_VALUE = 30; 
+    
     /**
-     * Constrói um coelho.
+     * Constrói uma cobra.
      */
-    public Rabbit() {
+    public Snake() {
         super();
     }
-    
+
     /**
-     * Define se o coelho pode comer o objeto fornecido.
+     * Define se a cobra pode comer o objeto fornecido.
      */
     @Override
     public boolean canEat(Object obj) {
-        return obj instanceof Plant;
+        return (obj instanceof Animal) && !(obj instanceof Hunter);
     }
 
     /**
-    * Procura por uma planta comestível nas localizações adjacentes.
-    */
+     * Procura por comida (qualquer presa) nas células adjacentes.
+     */
     @Override
     public Location findFood(Field currentField) {
-        
-        List<Location> adjacentList = currentField.adjacentLocations(getLocation()); 
-        Collections.shuffle(adjacentList, rand);
-        
-        for (Location where : adjacentList) {
+        Iterator<Location> adjacent = currentField.adjacentLocations(getLocation()).iterator();
+        while (adjacent.hasNext()) {
+            Location where = adjacent.next();
             Object obj = currentField.getObjectAt(where);
             
             if (canEat(obj)) {
-                Plant plantFound = (Plant) obj;
-                
-                setFoodLevel(getFoodLevel() + plantFound.getFoodValue());
-                currentField.clear(where);
-                
-                return where;
+                Animal prey = (Animal) obj;
+                if (prey.isAlive()) {
+                    prey.setDead();
+                    currentField.clear(where); 
+                    setFoodLevel(FOOD_VALUE);
+                    return where;
+                }
             }
         }
         return null;
     }
 
     /**
-     * Executa as ações do coelho em um passo de simulação.
+     * Executa as ações da cobra em um passo de simulação.
      */
     @Override
     public void act(Field currentField, Field updatedField, List<Actor> newActors) {
@@ -74,7 +74,7 @@ public class Rabbit extends Animal {
     }
     
     /**
-     * Tenta mover o coelho para a próxima localização.
+     * Tenta mover a cobra para a próxima localização.
      */
     private void attemptMove(Field currentField, Field updatedField, Location nextLocation) {
         if (nextLocation != null) {
@@ -104,7 +104,7 @@ public class Rabbit extends Animal {
         for (int i = 0; i < births && !freeLocations.isEmpty(); i++) {
             Location newLoc = freeLocations.remove(0);
             
-            Rabbit newAnimal = new Rabbit();
+            Snake newAnimal = new Snake();
             newAnimal.setLocation(newLoc);
             
             updatedField.place(newAnimal, newLoc);
@@ -120,16 +120,20 @@ public class Rabbit extends Animal {
     @Override 
     public int getBreedingAge() { 
         return BREEDING_AGE; 
-    }
-    @Override 
-    public int getMaxAge() { 
-        return MAX_AGE; 
-    }
+    } 
     @Override 
     public double getBreedingProbability() { 
         return BREEDING_PROBABILITY; 
     }
+    @Override 
     public int getMaxLitterSize() { 
         return MAX_LITTER_SIZE; 
+    }
+    @Override
+    public int getMaxAge() { 
+        return MAX_AGE; 
+    }
+    public int getFoodValue() { 
+        return FOOD_VALUE; 
     }
 }

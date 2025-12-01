@@ -1,61 +1,50 @@
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Representa uma raposa no ecossistema.
  *
- * - Raposas são predadoras de coelhos.
- * - Movimentação é restringida por tipos de terreno: não atravessam RIVER ou MOUNTAIN.
- * - Procuram por comida nas células adjacentes e caçam coelhos.
- * - Reproduzem-se com probabilidade menor que coelhos e têm maior longevidade.
- *
- * Esta classe foi expandida para respeitar restrições de terreno e manter
- * compatibilidade com a lógica original da simulação.
- *
- * @author Base: Barnes & Kolling
- * @version 2002-04-23 (revisado 2025-11 para terrenos)
+ * @author Grupo 1
+ * @version 2025
  */
 public class Fox extends Animal {
-    /** Idade mínima para reprodução. */
+    
+    // Constantes da Espécie
     private static final int BREEDING_AGE = 10;
-    /** Idade máxima. */
     private static final int MAX_AGE = 150;
-    /** Probabilidade de reprodução a cada passo. */
-    private static final double BREEDING_PROBABILITY = 0.09;
-    /** Tamanho máximo da ninhada. */
-    private static final int MAX_LITTER_SIZE = 3;
-    /** Valor nutricional do coelho (restaura fome). */
-    private static final int FOOD_VALUE = 7;
-
+    private static final double BREEDING_PROBABILITY = 0.26;
+    private static final int MAX_LITTER_SIZE = 4;
+    private static final int FOOD_VALUE = 20; 
     /**
-     * Constrói uma raposa, possivelmente dando-lhe uma idade aleatória e níveis
-     * de fome iniciais aleatórias para diversidade.
-     *
-     * @param randomAge se true, inicializa com idade e fome aleatórias.
-     * @param field campo da simulação.
-     * @param location localização inicial.
+     * Constrói uma raposa.
      */
-    public Fox(boolean randomAge, Field field, Location location) {
-        super(randomAge, field, location);
+    public Fox() {
+        super();
+    }
+    
+    /**
+     * Define se a raposa pode comer o objeto fornecido.
+     */
+    @Override
+    public boolean canEat(Object obj) {
+        return obj instanceof Rabbit;
     }
 
-
-
     /**
-     * Procura por coelhos nas células adjacentes. Se encontrar um coelho vivo,
-     * mata-o, restaura o nível de fome e retorna a localização do coelho (para mover-se).
-     *
-     * @return localização da comida encontrada ou null se não houver.
+     * Procura por comida (coelho) nas células adjacentes.
      */
-    public Location findFood() {
-        Iterator<Location> adjacent = getField().adjacentLocations(getLocation()).iterator();
+    @Override
+    public Location findFood(Field currentField) {
+        Iterator<Location> adjacent = currentField.adjacentLocations(getLocation()).iterator();
         while (adjacent.hasNext()) {
             Location where = adjacent.next();
-            Object obj = getField().getObjectAt(where);
-            if (obj instanceof Rabbit) {
-                Rabbit rabbit = (Rabbit) obj;
-                if (rabbit.isAlive()) {
-                    rabbit.setDead();
+            Object obj = currentField.getObjectAt(where);
+            
+            if (canEat(obj)) {
+                Animal prey = (Animal) obj;
+                if (prey.isAlive()) {
+                    prey.setDead(); 
+                    currentField.clear(where); 
                     setFoodLevel(FOOD_VALUE);
                     return where;
                 }
@@ -64,28 +53,86 @@ public class Fox extends Animal {
         return null;
     }
 
+    /**
+     * Executa as ações da raposa em um passo de simulação.
+     */
     @Override
+    public void act(Field currentField, Field updatedField, List<Actor> newActors) {
+        incrementAge();
+        incrementHunger();
+        if (!isAlive()) return;
+
+        giveBirth(currentField, updatedField, newActors);
+
+        Location nextLocation = findFood(currentField);
+        if (nextLocation == null) {
+            nextLocation = currentField.freeAdjacentLocation(getLocation());
+        }
+
+        attemptMove(currentField, updatedField, nextLocation);
+    }
+    
+    /**
+     * Tenta mover a raposa para a próxima localização.
+     */
+    private void attemptMove(Field currentField, Field updatedField, Location nextLocation) {
+        if (nextLocation != null) {
+            Terrain terrain = currentField.getTerrainAt(nextLocation);
+            String actorName = this.getClass().getSimpleName();
+            
+            if (!Barriers.isForbidden(actorName, terrain)) {
+                updatedField.clear(getLocation()); 
+                setLocation(nextLocation);
+                updatedField.place(this, nextLocation);
+            } else {
+                updatedField.place(this, getLocation());
+            }
+        } else {
+            updatedField.place(this, getLocation());
+        }
+    }
+
+    /**
+     * Gera novos animais em locais adjacentes livres.
+     */
+    @Override
+    public void giveBirth(Field currentField, Field updatedField, List<Actor> newActors) {
+        List<Location> freeLocations = currentField.getFreeAdjacent(getLocation());
+        int births = breed();
+        
+        for (int i = 0; i < births && !freeLocations.isEmpty(); i++) {
+            Location newLoc = freeLocations.remove(0);
+            
+            Fox newAnimal = new Fox();
+            newAnimal.setLocation(newLoc);
+            
+            updatedField.place(newAnimal, newLoc);
+            newActors.add(newAnimal);
+        }
+    }
+
+    // Getters para as propriedades da espécie
+    @Override 
+    public boolean canBreed() { 
+        return getAge() >= BREEDING_AGE; 
+    }
+    @Override 
     public int getBreedingAge() { 
         return BREEDING_AGE; 
     }
-
-    @Override
+    @Override 
     public int getMaxAge() { 
         return MAX_AGE; 
     }
-
-    @Override
-    public double getBreedingProbability() {
-        return BREEDING_PROBABILITY;
+    @Override 
+    public double getBreedingProbability() { 
+        return BREEDING_PROBABILITY; 
     }
-
-    @Override
-    public int getMaxLitterSize() {
-        return MAX_LITTER_SIZE;
+    @Override 
+    public int getMaxLitterSize() { 
+        return MAX_LITTER_SIZE; 
     }
-
-    public int getFoodValue() {
-        return FOOD_VALUE;
+    public int getFoodValue() { 
+        return FOOD_VALUE; 
     }
-
 }

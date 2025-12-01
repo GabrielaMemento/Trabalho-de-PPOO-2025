@@ -36,7 +36,7 @@ public boolean canEat(Object obj) {
     return (obj instanceof Animal) && !(obj instanceof Cacador);
 }
 
-//caçafor
+//caçador
 @Override
 public boolean canEat(Object obj) {
     // Caçador pode atacar qualquer animal, exceto águias e cobras
