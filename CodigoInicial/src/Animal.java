@@ -21,7 +21,6 @@ public abstract class Animal implements Actor {
     
     /** Um gerador de números aleatórios compartilhado para controlar a reprodução. */
     protected static final Random rand = new Random();
-    private static final int INITIAL_FOOD_LEVEL = 10;
 
     /**
      * Construtor para um animal.
@@ -30,7 +29,6 @@ public abstract class Animal implements Actor {
     public Animal() {
         this.age = 0;
         this.alive = true;
-        this.foodLevel = INITIAL_FOOD_LEVEL;
     }
 
         /**

@@ -12,9 +12,9 @@ public class Hunter extends Animal {
     // Constantes da Espécie
     private static final int BREEDING_AGE = 20;
     private static final int MAX_AGE = 300;
-    private static final double BREEDING_PROBABILITY = 0.33; 
+    private static final double BREEDING_PROBABILITY = 0.03; 
     private static final int MAX_LITTER_SIZE = 1;
-    private static final int HUNT_FOOD_VALUE = 50; 
+    private static final int HUNT_FOOD_VALUE = 15; 
     
     /**
      * Constrói um caçador.

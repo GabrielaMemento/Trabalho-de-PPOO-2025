@@ -11,10 +11,10 @@ public class Fox extends Animal {
     
     // Constantes da Espécie
     private static final int BREEDING_AGE = 10;
-    private static final int MAX_AGE = 150;
-    private static final double BREEDING_PROBABILITY = 0.26;
-    private static final int MAX_LITTER_SIZE = 4;
-    private static final int FOOD_VALUE = 20; 
+    private static final int MAX_AGE = 300;
+    private static final double BREEDING_PROBABILITY = 0.09;
+    private static final int MAX_LITTER_SIZE = 3;
+    private static final int FOOD_VALUE = 12; 
     /**
      * Constrói uma raposa.
      */

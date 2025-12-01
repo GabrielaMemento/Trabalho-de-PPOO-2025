@@ -17,17 +17,17 @@ public class Simulator {
     private static final int DEFAULT_DEPTH = 50;
     
     // Probabilidades de Criação 
-    private static final double PLANT_CREATION_PROBABILITY = 0.02; 
-    private static final double RABBIT_CREATION_PROBABILITY = 0.20; 
-    private static final double FOX_CREATION_PROBABILITY = 0.10; 
-    private static final double WOLF_CREATION_PROBABILITY = 0.06; 
-    private static final double SNAKE_CREATION_PROBABILITY = 0.12; 
-    private static final double EAGLE_CREATION_PROBABILITY = 0.015; 
-    private static final double HUNTER_CREATION_PROBABILITY = 0.012; 
+    private static final double PLANT_CREATION_PROBABILITY = 0.10; // Base da cadeia alimentar
+    private static final double RABBIT_CREATION_PROBABILITY = 0.08; // Herbívoro primário
+    private static final double FOX_CREATION_PROBABILITY = 0.04; // Predador secundário
+    private static final double WOLF_CREATION_PROBABILITY = 0.06; // Predador intermediário
+    private static final double SNAKE_CREATION_PROBABILITY = 0.04; // Predador de topo
+    private static final double EAGLE_CREATION_PROBABILITY = 0.04; // Superpredador
+    private static final double HUNTER_CREATION_PROBABILITY = 0.03; // Fator externo raro
 
     // Dinâmica de Plantas 
-    private static final double PLANT_GROWTH_PROBABILITY = 0.25;
-    private static final double PLANT_DEATH_PROBABILITY = 0.05;
+    private static final double PLANT_GROWTH_PROBABILITY = 0.25; // Crescimento sazonal
+    private static final double PLANT_DEATH_PROBABILITY = 0.05;  // Mortalidade natural
 
     /** Lista de atores ativos na simulação (Animais e Plantas). */
     private final List<Actor> actors;
@@ -120,7 +120,7 @@ public class Simulator {
                 if (!animal.isAlive()) {
                     shouldRemove = true;
                 }
-            } else if (actor instanceof Plant plant) {
+            } else if (actor instanceof Plant) {
                 if (rand.nextDouble() <= PLANT_DEATH_PROBABILITY) {
                     shouldRemove = true;
                 }

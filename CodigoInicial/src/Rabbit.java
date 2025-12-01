@@ -11,9 +11,9 @@ public class Rabbit extends Animal {
     
     // Constantes da Espécie
     private static final int BREEDING_AGE = 5;
-    private static final int MAX_AGE = 150; 
-    private static final double BREEDING_PROBABILITY = 0.35; 
-    private static final int MAX_LITTER_SIZE = 4;
+    private static final int MAX_AGE = 40; 
+    private static final double BREEDING_PROBABILITY = 0.15; 
+    private static final int MAX_LITTER_SIZE = 5;
 
     /**
      * Constrói um coelho.

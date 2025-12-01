@@ -9,8 +9,8 @@ import java.util.List;
 public enum Plant implements Actor {
     
     // Define os valores de alimento em cada constante
-    ROSEMARY(20), // Alecrim
-    SAGE(25);     // Sálvia
+    ROSEMARY(6), // Alecrim
+    SAGE(4);     // Sálvia
 
     private final int foodValue;
     private Location location;

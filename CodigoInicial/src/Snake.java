@@ -12,9 +12,9 @@ public class Snake extends Animal {
     // Constantes da Espécie
     private static final int BREEDING_AGE = 8;
     private static final int MAX_AGE = 100;
-    private static final double BREEDING_PROBABILITY = 0.30; 
+    private static final double BREEDING_PROBABILITY = 0.05; 
     private static final int MAX_LITTER_SIZE = 4;
-    private static final int FOOD_VALUE = 30; 
+    private static final int FOOD_VALUE = 10; 
     
     /**
      * Constrói uma cobra.
